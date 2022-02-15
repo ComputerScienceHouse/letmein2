@@ -4,10 +4,6 @@ import board
 import feathers2
 import digitalio
 import wifi
-import socketpool
-import ssl # TODO (willnilges): use SSL
-
-from secrets import secrets
 
 # Make sure the 2nd LDO is turned on
 feathers2.enable_LDO2(True)
@@ -22,8 +18,8 @@ print("\nLigma")
 feathers2.led_set(True)
 
 # Connect to wifi
-network = secrets['ssid'] # TODO (willnilges): HIDE THIS!
-pword = secrets['password']
+network = 'CSH-Legacy' # TODO (willnilges): HIDE THIS!
+pword = 'white-hot7419%radius'
 print("Connecting to %s" % network)
 print("mac address:", "%02x:%02x:%02x:%02x:%02x:%02x" % tuple(map(int, wifi.radio.mac_address)))
 wifi.radio.connect(network, pword)
@@ -43,64 +39,6 @@ ack = digitalio.DigitalInOut(board.IO5)
 ack.direction = digitalio.Direction.INPUT
 
 sleep_len = 0.2
-
-# == EM QUEUE TEE TEE ==
-
-### Code ###
-
-# Define callback methods which are called when events occur
-# pylint: disable=unused-argument, redefined-outer-name
-def connected(client, userdata, flags, rc):
-    # This function will be called when the client is connected
-    # successfully to the broker.
-    print("Connected to Adafruit IO! Listening for topic changes on %s" % onoff_feed)
-    # Subscribe to all changes on the onoff_feed.
-    client.subscribe(onoff_feed)
-
-
-def disconnected(client, userdata, rc):
-    # This method is called when the client is disconnected
-    print("Disconnected from Adafruit IO!")
-
-
-def message(client, topic, message):
-    # This method is called when a topic the client is subscribed to
-    # has a new message.
-    print("New message on topic {0}: {1}".format(topic, message))
-
-# Create a socket pool
-pool = socketpool.SocketPool(wifi.radio)
-
-# Set up a MiniMQTT Client
-mqtt_client = MQTT.MQTT(
-    broker=secrets["broker"],
-    port=secrets["port"],
-    username=secrets["aio_username"],
-    password=secrets["aio_key"],
-    socket_pool=pool,
-    ssl_context=ssl.create_default_context(),
-)
-
-# Setup the callback methods above
-mqtt_client.on_connect = connected
-mqtt_client.on_disconnect = disconnected
-mqtt_client.on_message = message
-
-# Connect the client to the MQTT broker.
-print("Connecting to Adafruit IO...")
-mqtt_client.connect()
-
-photocell_val = 0
-while True:
-    # Poll the message queue
-    mqtt_client.loop()
-
-    # Send a new message
-    print("Sending photocell value: %d..." % photocell_val)
-    mqtt_client.publish(photocell_feed, photocell_val)
-    print("Sent!")
-    photocell_val += 1
-    time.sleep(5)
 
 while True:
 
