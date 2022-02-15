@@ -6,7 +6,9 @@ import digitalio
 import wifi
 import socketpool
 import ssl # TODO: Use this
-import adafruit_minimqtt.adafruit_minimqtt as MQTT
+#import adafruit_minimqtt.adafruit_minimqtt as MQTT
+import ipaddress
+import adafruit_requests
 
 from secrets import secrets
 
@@ -18,25 +20,25 @@ dotstar = adafruit_dotstar.DotStar(board.APA102_SCK, board.APA102_MOSI, 1, brigh
 
 # Say hello
 print('''
-'{tttttttttttttttttttttttt^ *tttt
-:@@@@@@@@@@@@@@@@@@@@@@@@@m d@@@@N`
-:@@@@@@@@@@@@@@@@@@@@@@@@@m d@@@@N`
-:@@@@@m:::::::::::::rQ@@@@m d@@@@N`
-:@@@@@] vBBBBBBBBBN,`]oooo* d@@@@N`
-:@@@@@] o@@@NNNQ@@@"`ueeee| d@@@@N`
-:@@@@@] o@@&   ,||?`'Q@@@@m d@@@@N`
-:@@@@@] o@@Q]tt{{{z-'Q@@@@QOQ@@@@N`
-:@@@@@] o@@@@@@@@@@"'Q@@@@@@@@@@@N`
-:@@@@@] ';;;;;;y@@@"'Q@@@@N7Q@@@@N`
-:@@@@@] \KKe^^^a@@@"'Q@@@@m d@@@@N`
-:@@@@@] o@@@@@@@@@@" _::::' d@@@@N`
-:@@@@@] raaaaaaaaay..H####} d@@@@N`
-:@@@@@#eeeeeeeeeeeeek@@@@@m d@@@@N`
-:@@@@@@@@@@@@@@@@@@@@@@@@@m d@@@@N`
-:@@@@@@@@@@@@@@@@@@@@@@@@@e K@@@@W`
- .........................` `....-
+    '{tttttttttttttttttttttttt^ *tttt
+    :@@@@@@@@@@@@@@@@@@@@@@@@@m d@@@@N`
+    :@@@@@@@@@@@@@@@@@@@@@@@@@m d@@@@N`
+    :@@@@@m:::::::::::::rQ@@@@m d@@@@N`
+    :@@@@@] vBBBBBBBBBN,`]oooo* d@@@@N`
+    :@@@@@] o@@@NNNQ@@@"`ueeee| d@@@@N`
+    :@@@@@] o@@&   ,||?`'Q@@@@m d@@@@N`
+    :@@@@@] o@@Q]tt{{{z-'Q@@@@QOQ@@@@N`
+    :@@@@@] o@@@@@@@@@@"'Q@@@@@@@@@@@N`
+    :@@@@@] ';;;;;;y@@@"'Q@@@@N7Q@@@@N`
+    :@@@@@] \KKe^^^a@@@"'Q@@@@m d@@@@N`
+    :@@@@@] o@@@@@@@@@@" _::::' d@@@@N`
+    :@@@@@] raaaaaaaaay..H####} d@@@@N`
+    :@@@@@#eeeeeeeeeeeeek@@@@@m d@@@@N`
+    :@@@@@@@@@@@@@@@@@@@@@@@@@m d@@@@N`
+    :@@@@@@@@@@@@@@@@@@@@@@@@@e K@@@@W`
+     .........................` `....-
 ''')
-print("\nCSH LetMeIn! v2.0alpha1")
+print("--  -- =- CSH LetMeIn! v2.0alpha1 -= -- --\n")
 
 # Show available memory
 print("Memory Info - gc.mem_free()")
@@ -75,63 +77,44 @@ print("mac address:", "%02x:%02x:%02x:%02x:%02x:%02x" % tuple(map(int, wifi.radi
 wifi.radio.connect(secrets['ssid'], secrets['password'])
 print("Connected to %s!" % secrets['ssid'])
 
-# === EM QUEUE TEE TEE ===
 
-### Code ###
-
-my_feed = "usercenter/feed/s_stairs"
-
-# Define callback methods which are called when events occur
-# pylint: disable=unused-argument, redefined-outer-name
-def connected(client, userdata, flags, rc):
-    # This function will be called when the client is connected
-    # successfully to the broker.
-    print("Connected to Broker!")
-    # Subscribe to all changes on the onoff_feed.
-    client.subscribe(my_feed)
+ipv4 = ipaddress.ip_address("8.8.4.4")
+print("Ping google.com: %f ms" % (wifi.radio.ping(ipv4)*1000))
 
 
-def disconnected(client, userdata, rc):
-    # This method is called when the client is disconnected
-    print("Disconnected from Broker!")
-
-def message(client, topic, message):
-    # This method is called when a topic the client is subscribed to
-    # has a new message.
-    print("New message on topic {0}: {1}".format(topic, message))
-
-
-# Create a socket pool
 pool = socketpool.SocketPool(wifi.radio)
+requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
-# Set up a MiniMQTT Client
-mqtt_client = MQTT.MQTT(
-    broker=secrets["broker"],
-    port=secrets["port"],
-    username=secrets["username"],
-    password=secrets["key"],
-    socket_pool=pool,
-    ssl_context=ssl.create_default_context(),
-)
 
-# Setup the callback methods above
-mqtt_client.on_connect = connected
-mqtt_client.on_disconnect = disconnected
-mqtt_client.on_message = message
+# URLs to fetch from
+TEXT_URL = "http://wifitest.adafruit.com/testwifi/index.html"
+JSON_QUOTES_URL = "https://www.adafruit.com/api/quotes.php"
+JSON_STARS_URL = "https://api.github.com/repos/adafruit/circuitpython"
 
-# Connect the client to the MQTT broker.
-print("Connecting to Adafruit IO...")
-mqtt_client.connect()
+print("Fetching text from", TEXT_URL)
+response = requests.get(TEXT_URL)
+print("-" * 40)
+print(response.text)
+print("-" * 40)
 
-while True:
-    # Poll the message queue
-    mqtt_client.loop()
+print("Fetching json from", JSON_QUOTES_URL)
+response = requests.get(JSON_QUOTES_URL)
+print("-" * 40)
+print(response.json())
+print("-" * 40)
 
-    # Send a new message
-    print("Sending message...")
-    mqtt_client.publish(test_topic, "ligma")
-    print("Sent!")
-    time.sleep(5)
+print()
+
+print("Fetching and parsing json from", JSON_STARS_URL)
+response = requests.get(JSON_STARS_URL)
+print("-" * 40)
+print("CircuitPython GitHub Stars", response.json()["stargazers_count"])
+print("-" * 40)
+
+print("done")
+
+
+
 '''
 # Main loop
 while True:
