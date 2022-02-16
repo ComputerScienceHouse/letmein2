@@ -1,0 +1,58 @@
+body {
+    background-color: #152d54;
+    display: flex;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+p {
+    font-size: 4rem;
+    color: white;
+}
+
+#waitingStatus,
+#comingStatus,
+#timedOutStatus,
+#buttonContainer,
+#ligmaStatus {
+    margin: auto;
+}
+
+#waitingStatus,
+#comingStatus,
+#timedOutStatus,
+#ligmaStatus {
+    display: none;
+}
+
+img {
+    display: block;
+    width: 100%;
+}
+
+button {
+    background-color: #635192;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    font-size: 5rem;
+    margin: 5rem 0;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 0 5px 3px rgba(0, 0, 0, 0.35);
+    position: relative;
+    top: 0px;
+    transition: box-shadow .1s ease-in, top .1s ease-in;
+}
+
+button:hover {
+    box-shadow: 0 0 5px 6px rgba(0, 0, 0, 0.35);
+    top: -3px;
+}
