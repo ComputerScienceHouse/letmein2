@@ -1,4 +1,4 @@
-import os.environ as env
+from os import environ as env
 
 RECAPTCHA_SECRET_KEY = env.get('RECAPTCHA_SECRET')
 RECAPTCHA_SITE_VERIFY_URL = env.get('RECAPTCHA_URL')
