@@ -77,11 +77,11 @@ def notify_slack():
 def shutdown():
     print("Goodbye", file=sys.stderr)
 
-@socketio.on('connect')
+@SOCKETIO.on('connect')
 def connect():
     join_room('nrh3')
 
-@socketio.on('ack')
+@SOCKETIO.on('ack')
 def ack(data):
     global BUSY
     BUSY=False
