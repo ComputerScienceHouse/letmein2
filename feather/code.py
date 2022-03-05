@@ -85,7 +85,7 @@ print("Connected to %s!" % secrets['ssid'])
 
 # MQTT Topic
 # Use this topic if you'd like to connect to a standard MQTT broker
-mqtt_topic = "test/topic"
+mqtt_topic = "letmeinv2/answer_usercenter"
 
 # Adafruit IO-style Topic
 # Use this topic if you'd like to connect to io.adafruit.com
@@ -149,28 +149,31 @@ mqtt_client.on_message = message
 print("Attempting to connect to %s" % mqtt_client.broker)
 mqtt_client.connect()
 
-print("Subscribing to %s" % mqtt_topic)
-mqtt_client.subscribe(mqtt_topic)
+#print("Subscribing to %s" % mqtt_topic)
+#mqtt_client.subscribe(mqtt_topic)
 
 print("Publishing to %s" % mqtt_topic)
 mqtt_client.publish(mqtt_topic, "Hello Broker!")
 
-print("Unsubscribing from %s" % mqtt_topic)
-mqtt_client.unsubscribe(mqtt_topic)
-
-print("Disconnecting from %s" % mqtt_client.broker)
-mqtt_client.disconnect()
+#print("Unsubscribing from %s" % mqtt_topic)
+#mqtt_client.unsubscribe(mqtt_topic)
+#
+#print("Disconnecting from %s" % mqtt_client.broker)
+#mqtt_client.disconnect()
 
 ### CHOM
 
+print("Ready.")
 
 # Main loop
 while True:
 
+    # Checks for updates
     #mqtt_client.loop()
 
 #    s_stairs.value = ack.value
     if ack.value:
+        mqtt_client.publish(mqtt_topic, "Hello Broker!")
         s_stairs.value = 1
         time.sleep(sleep_len)
         s_stairs.value = 0
