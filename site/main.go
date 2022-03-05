@@ -4,6 +4,7 @@ import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	//"time"
+    "github.com/gin-gonic/gin"
 )
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
@@ -41,6 +42,12 @@ func main() {
 		panic(token.Error())
 	}
 	sub(client)
-    for {}
+
+    r := gin.Default()
+    r.GET("/", func(c *gin.Context) {
+        c.String(200, "Welcome to Go and Gin!")
+    })
+    r.Run()
+
     client.Disconnect(250)
 }
