@@ -18,25 +18,25 @@ dotstar = adafruit_dotstar.DotStar(board.APA102_SCK, board.APA102_MOSI, 1, brigh
 
 # Say hello
 print('''
-'{tttttttttttttttttttttttt^ *tttt
-:@@@@@@@@@@@@@@@@@@@@@@@@@m d@@@@N`
-:@@@@@@@@@@@@@@@@@@@@@@@@@m d@@@@N`
-:@@@@@m:::::::::::::rQ@@@@m d@@@@N`
-:@@@@@] vBBBBBBBBBN,`]oooo* d@@@@N`
-:@@@@@] o@@@NNNQ@@@"`ueeee| d@@@@N`
-:@@@@@] o@@&   ,||?`'Q@@@@m d@@@@N`
-:@@@@@] o@@Q]tt{{{z-'Q@@@@QOQ@@@@N`
-:@@@@@] o@@@@@@@@@@"'Q@@@@@@@@@@@N`
-:@@@@@] ';;;;;;y@@@"'Q@@@@N7Q@@@@N`
-:@@@@@] \KKe^^^a@@@"'Q@@@@m d@@@@N`
-:@@@@@] o@@@@@@@@@@" _::::' d@@@@N`
-:@@@@@] raaaaaaaaay..H####} d@@@@N`
-:@@@@@#eeeeeeeeeeeeek@@@@@m d@@@@N`
-:@@@@@@@@@@@@@@@@@@@@@@@@@m d@@@@N`
-:@@@@@@@@@@@@@@@@@@@@@@@@@e K@@@@W`
- .........................` `....-
+    '{tttttttttttttttttttttttt^ *tttt
+    :@@@@@@@@@@@@@@@@@@@@@@@@@m d@@@@N`
+    :@@@@@@@@@@@@@@@@@@@@@@@@@m d@@@@N`
+    :@@@@@m:::::::::::::rQ@@@@m d@@@@N`
+    :@@@@@] vBBBBBBBBBN,`]oooo* d@@@@N`
+    :@@@@@] o@@@NNNQ@@@"`ueeee| d@@@@N`
+    :@@@@@] o@@&   ,||?`'Q@@@@m d@@@@N`
+    :@@@@@] o@@Q]tt{{{z-'Q@@@@QOQ@@@@N`
+    :@@@@@] o@@@@@@@@@@"'Q@@@@@@@@@@@N`
+    :@@@@@] ';;;;;;y@@@"'Q@@@@N7Q@@@@N`
+    :@@@@@] \KKe^^^a@@@"'Q@@@@m d@@@@N`
+    :@@@@@] o@@@@@@@@@@" _::::' d@@@@N`
+    :@@@@@] raaaaaaaaay..H####} d@@@@N`
+    :@@@@@#eeeeeeeeeeeeek@@@@@m d@@@@N`
+    :@@@@@@@@@@@@@@@@@@@@@@@@@m d@@@@N`
+    :@@@@@@@@@@@@@@@@@@@@@@@@@e K@@@@W`
+     .........................` `....-
 ''')
-print("\nCSH LetMeIn! v2.0alpha1")
+print("--  -- =- CSH LetMeIn! v2.0alpha1 -= -- --")
 
 # Show available memory
 print("Memory Info - gc.mem_free()")
