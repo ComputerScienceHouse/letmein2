@@ -7,6 +7,8 @@ import wifi
 import socketpool
 import ssl # TODO: Use this
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
+import ipaddress
+import adafruit_requests
 
 from secrets import secrets
 
@@ -36,7 +38,7 @@ print('''
     :@@@@@@@@@@@@@@@@@@@@@@@@@e K@@@@W`
      .........................` `....-
 ''')
-print("--  -- =- CSH LetMeIn! v2.0alpha1 -= -- --")
+print("--  -- =- CSH LetMeIn! v2.0alpha1 -= -- --\n")
 
 # Show available memory
 print("Memory Info - gc.mem_free()")
@@ -75,29 +77,53 @@ print("mac address:", "%02x:%02x:%02x:%02x:%02x:%02x" % tuple(map(int, wifi.radi
 wifi.radio.connect(secrets['ssid'], secrets['password'])
 print("Connected to %s!" % secrets['ssid'])
 
-# === EM QUEUE TEE TEE ===
+
+### CHOM
+
+
+### Topic Setup ###
+
+# MQTT Topic
+# Use this topic if you'd like to connect to a standard MQTT broker
+mqtt_topic = "test/topic"
+
+# Adafruit IO-style Topic
+# Use this topic if you'd like to connect to io.adafruit.com
+# mqtt_topic = secrets["aio_username"] + '/feeds/temperature'
 
 ### Code ###
-
-my_feed = "usercenter/feed/s_stairs"
-
 # Define callback methods which are called when events occur
 # pylint: disable=unused-argument, redefined-outer-name
-def connected(client, userdata, flags, rc):
-    # This function will be called when the client is connected
+def connect(mqtt_client, userdata, flags, rc):
+    # This function will be called when the mqtt_client is connected
     # successfully to the broker.
-    print("Connected to Broker!")
-    # Subscribe to all changes on the onoff_feed.
-    client.subscribe(my_feed)
+    print("Connected to MQTT Broker!")
+    print("Flags: {0}\n RC: {1}".format(flags, rc))
 
 
-def disconnected(client, userdata, rc):
-    # This method is called when the client is disconnected
-    print("Disconnected from Broker!")
+def disconnect(mqtt_client, userdata, rc):
+    # This method is called when the mqtt_client disconnects
+    # from the broker.
+    print("Disconnected from MQTT Broker!")
+
+
+def subscribe(mqtt_client, userdata, topic, granted_qos):
+    # This method is called when the mqtt_client subscribes to a new feed.
+    print("Subscribed to {0} with QOS level {1}".format(topic, granted_qos))
+
+
+def unsubscribe(mqtt_client, userdata, topic, pid):
+    # This method is called when the mqtt_client unsubscribes from a feed.
+    print("Unsubscribed from {0} with PID {1}".format(topic, pid))
+
+
+def publish(mqtt_client, userdata, topic, pid):
+    # This method is called when the mqtt_client publishes data to a feed.
+    print("Published to {0} with PID {1}".format(topic, pid))
+
 
 def message(client, topic, message):
-    # This method is called when a topic the client is subscribed to
-    # has a new message.
+    # Method called when a client's subscribed feed has a new value.
     print("New message on topic {0}: {1}".format(topic, message))
 
 
@@ -108,33 +134,40 @@ pool = socketpool.SocketPool(wifi.radio)
 mqtt_client = MQTT.MQTT(
     broker=secrets["broker"],
     port=secrets["port"],
-    username=secrets["username"],
-    password=secrets["key"],
     socket_pool=pool,
     ssl_context=ssl.create_default_context(),
 )
 
-# Setup the callback methods above
-mqtt_client.on_connect = connected
-mqtt_client.on_disconnect = disconnected
+# Connect callback handlers to mqtt_client
+mqtt_client.on_connect = connect
+mqtt_client.on_disconnect = disconnect
+mqtt_client.on_subscribe = subscribe
+mqtt_client.on_unsubscribe = unsubscribe
+mqtt_client.on_publish = publish
 mqtt_client.on_message = message
 
-# Connect the client to the MQTT broker.
-print("Connecting to Adafruit IO...")
+print("Attempting to connect to %s" % mqtt_client.broker)
 mqtt_client.connect()
 
-while True:
-    # Poll the message queue
-    mqtt_client.loop()
+print("Subscribing to %s" % mqtt_topic)
+mqtt_client.subscribe(mqtt_topic)
 
-    # Send a new message
-    print("Sending message...")
-    mqtt_client.publish(test_topic, "ligma")
-    print("Sent!")
-    time.sleep(5)
-'''
+print("Publishing to %s" % mqtt_topic)
+mqtt_client.publish(mqtt_topic, "Hello Broker!")
+
+print("Unsubscribing from %s" % mqtt_topic)
+mqtt_client.unsubscribe(mqtt_topic)
+
+print("Disconnecting from %s" % mqtt_client.broker)
+mqtt_client.disconnect()
+
+### CHOM
+
+
 # Main loop
 while True:
+
+    #mqtt_client.loop()
 
 #    s_stairs.value = ack.value
     if ack.value:
@@ -157,4 +190,3 @@ while True:
         time.sleep(sleep_len)
         n_stairs.value = 0
         time.sleep(sleep_len)
-'''
