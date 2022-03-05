@@ -3,8 +3,7 @@ package main
 import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"time"
-    "os"
+	//"time"
 )
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
@@ -21,7 +20,7 @@ var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err
 
 func sub(client mqtt.Client) {
 	topic := "letmein2/answer_usercenter"
-	token := client.Subscribe(topic, 1, nil)
+	token := client.Subscribe(topic, 1, messagePubHandler)
 	token.Wait()
 	fmt.Printf("Subscribed to topic %s", topic)
 }
@@ -38,21 +37,10 @@ func main() {
 	opts.OnConnect = connectHandler
 	opts.OnConnectionLost = connectLostHandler
 	client := mqtt.NewClient(opts)
-    /*
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
-	}*/
-
-    if token := client.Subscribe("letmein2/answer_usercenter", 0, nil); token.Wait() && token.Error() != nil {
-            fmt.Println("dingus");
-            fmt.Println(token.Error())
-            os.Exit(1)
-    }
-
-    for {
-            time.Sleep(1 * time.Second)
-            //fmt.Println("waiting: ", wcount)
-            //wcount += 1
-    }
+	}
+	sub(client)
+    for {}
     client.Disconnect(250)
 }
