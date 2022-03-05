@@ -1,16 +1,10 @@
-import digitalio
 import usocketio.client
 import logging
 from secrets import secrets
-import wifi
+import network
+import machine
 
 logging.basicConfig(level=logging.DEBUG)
-
-# Make sure the 2nd LDO is turned on
-feathers2.enable_LDO2(True)
-
-# Create a DotStar instance
-dotstar = adafruit_dotstar.DotStar(board.APA102_SCK, board.APA102_MOSI, 1, brightness=0.5, auto_write=True)
 
 # Say hello
 print('''
@@ -47,14 +41,14 @@ print("Flash - os.statvfs('/')")
 print("---------------------------")
 print("Size: {} Bytes\nFree: {} Bytes\n".format(flash_size, flash_free))
 
-s_stairs = digitalio.DigitalInOut(board.IO10)
-level_1 = digitalio.DigitalInOut(board.IO7)
-level_a = digitalio.DigitalInOut(board.IO3)
-n_stairs = digitalio.DigitalInOut(board.IO1)
-s_stairs.direction = digitalio.Direction.OUTPUT
-level_1.direction = digitalio.Direction.OUTPUT
-level_a.direction = digitalio.Direction.OUTPUT
-n_stairs.direction = digitalio.Direction.OUTPUT
+OUT = machine.Pin.OUT
+IN = machine.Pin.IN
+
+s_stairs = machine.Pin(10, OUT)
+level_1 = machine.Pin(7, OUT)
+level_a = machine.Pin(3, OUT)
+n_stairs = machine.Pin(1, OUT)
+
 
 active = {
     'nLevel' : False,
@@ -70,21 +64,21 @@ output = {
     '1Level' : level_a,
 }
 
-ack = digitalio.DigitalInOut(board.IO5)
-ack.direction = digitalio.Direction.INPUT
+ack = machine.Pin(5, machine.Pin.IN)
 
-# Turn on the internal blue LED
-feathers2.led_set(True)
-
+sta_if = network.WLAN(network.STA_IF)
+sta_if.active(True)
 # Connect to wifi
 print("Connecting to %s" % secrets['ssid'])
 print("mac address:", "%02x:%02x:%02x:%02x:%02x:%02x" % tuple(map(int, wifi.radio.mac_address)))
-wifi.radio.connect(secrets['ssid'], secrets['password'])
+sta_if.connect(secrets['ssid'], secrets['password']) # Connect to an AP
+while not sta_if.isconnected():
+    pass
 print("Connected to %s!" % secrets['ssid'])
 
 def activate(loc):
     global active
-    while not ack.value and active[loc]:
+    while not ack.value() and active[loc]:
         output[loc].value = 1
     output[loc].value = 0
 
@@ -98,13 +92,13 @@ def hello():
             print(loc)
             activate(loc)
             if active[loc]:
-                socketio.emit('ack',{'data':'Shut up nerd I got u','room':'nrh3'}) 
+                socketio.emit('ack',{'data':'Shut up nerd I got u','location':loc,'room':'nrh3'})
                 active[loc] = False
 
         @socketio.on('ack')
         def on_alert(self, data):
             global active
-            active = False
+            active[data['location']] = False
 
         socketio.run_forever()
 
