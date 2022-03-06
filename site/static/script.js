@@ -7,7 +7,8 @@ function request_ack() {
         },
     })
         .then(resp => {
-            if (resp.ok) {
+            console.log(resp);
+            if (resp.status == 200) { // TODO: Using 408 on the backend broke this
                 return resp.text().then(text => {
                     if (text === "timeout") {
                         element.innerHTML = "Timed out.";
@@ -15,6 +16,8 @@ function request_ack() {
                         element.innerHTML = "Request answered; Sit tight.";
                     }
                 });
+            } else if (resp.status == 408){
+                element.innerHTML = "Timed out.";
             }
         })
 }

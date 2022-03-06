@@ -57,6 +57,7 @@ func main() {
 
 	// Route definitions
 	r.GET("/", func(c *gin.Context) {
+        acked = false
 		c.HTML(200, "home.tmpl", gin.H{})
 	})
 
@@ -106,7 +107,6 @@ func main() {
 	})
 
     r.GET("/nvm", func(c *gin.Context) { 
-        acked = false // TODO: AAARRRRGGGHHHH
         token := client.Publish("letmein2/ack", 0, false, "nvm")
         token.Wait()
 		c.Redirect(302, "/")
@@ -114,7 +114,8 @@ func main() {
 
 	r.POST("/response_acked", func(c *gin.Context) {
 		// This is fucking disgusting. Goddammit.
-		for i := 0; i < 30; i++ {
+        timeout_period := 10
+		for i := 0; i < timeout_period; i++ {
 			time.Sleep(1000 * time.Millisecond)
 			if acked {
 				c.String(200, "acked")
