@@ -85,7 +85,17 @@ print("Connected to %s!" % secrets['ssid'])
 
 # MQTT Topic
 # Use this topic if you'd like to connect to a standard MQTT broker
-mqtt_topic = "letmeinv2/answer_usercenter"
+mqtt_req_topic = "letmein2/req"
+mqtt_ack_topic = "letmein2/ack"
+'''
+topics = {
+    "r_level_a"  : "letmein2/req_level_a",
+    "r_level_1"  : "letmein2/req_level_1",
+    "r_stairs_n" : "letmein2/req_stairs_n",
+    "r_stairs_s" : "letmein2/req_stairs_s",
+    "r_well_l"   : "letmein2/req_well_l",
+}
+'''
 
 # Adafruit IO-style Topic
 # Use this topic if you'd like to connect to io.adafruit.com
@@ -125,6 +135,17 @@ def publish(mqtt_client, userdata, topic, pid):
 def message(client, topic, message):
     # Method called when a client's subscribed feed has a new value.
     print("New message on topic {0}: {1}".format(topic, message))
+    if topic == mqtt_req_topic:
+        if message == "level_a":
+            level_a.value = 1
+        elif message == "level_1":
+            level_1.value = 1
+        elif message == "stairs_s":
+            s_stairs.value = 1
+        elif message == "stairs_n":
+            n_stairs.value = 1
+        elif message == "well_l":
+            pass # TODO: install l-well LED
 
 
 # Create a socket pool
@@ -150,10 +171,16 @@ print("Attempting to connect to %s" % mqtt_client.broker)
 mqtt_client.connect()
 
 #print("Subscribing to %s" % mqtt_topic)
-#mqtt_client.subscribe(mqtt_topic)
+#mqtt_client.subscribe("req_s")
 
-print("Publishing to %s" % mqtt_topic)
-mqtt_client.publish(mqtt_topic, "Hello Broker!")
+'''
+for topic in topics.values():
+    mqtt_client.subscribe(topic)
+'''
+mqtt_client.subscribe(mqtt_req_topic)
+mqtt_client.subscribe(mqtt_ack_topic)
+#print("Publishing to %s" % mqtt_topic)
+#mqtt_client.publish(mqtt_topic, "Hello Broker!")
 
 #print("Unsubscribing from %s" % mqtt_topic)
 #mqtt_client.unsubscribe(mqtt_topic)
@@ -169,11 +196,14 @@ print("Ready.")
 while True:
 
     # Checks for updates
-    #mqtt_client.loop()
+    mqtt_client.loop()
 
 #    s_stairs.value = ack.value
     if ack.value:
-        mqtt_client.publish(mqtt_topic, "Hello Broker!")
+        location="usercenter"
+        mqtt_client.publish(mqtt_ack_topic, f"{location}")
+
+        '''
         s_stairs.value = 1
         time.sleep(sleep_len)
         s_stairs.value = 0
@@ -193,3 +223,4 @@ while True:
         time.sleep(sleep_len)
         n_stairs.value = 0
         time.sleep(sleep_len)
+        '''
