@@ -110,7 +110,7 @@ func main() {
 
 	r.POST("/response_acked", func(c *gin.Context) { // TODO: Change the name to be less confusing
 		ch := make(chan bool)
-		request_timeout_period := 30
+		request_timeout_period := 5
 		req_channels = append(req_channels, ch)
 		select {
 		case acked := <-ch:
