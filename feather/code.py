@@ -38,7 +38,7 @@ print('''
     :@@@@@@@@@@@@@@@@@@@@@@@@@e K@@@@W`
      .........................` `....-
 ''')
-print("--  -- =- CSH LetMeIn! v2.0alpha1 -= -- --\n")
+print("--  -- =- CSH LetMeIn! v2.0alpha2 -= -- --\n")
 
 # Show available memory
 print("Memory Info - gc.mem_free()")
@@ -54,10 +54,10 @@ print("---------------------------")
 print("Size: {} Bytes\nFree: {} Bytes\n".format(flash_size, flash_free))
 
 # Set up gpio
+level_a = digitalio.DigitalInOut(board.IO1)
+level_1 = digitalio.DigitalInOut(board.IO3)
+n_stairs = digitalio.DigitalInOut(board.IO7)
 s_stairs = digitalio.DigitalInOut(board.IO10)
-level_1 = digitalio.DigitalInOut(board.IO7)
-level_a = digitalio.DigitalInOut(board.IO3)
-n_stairs = digitalio.DigitalInOut(board.IO1)
 s_stairs.direction = digitalio.Direction.OUTPUT
 level_1.direction = digitalio.Direction.OUTPUT
 level_a.direction = digitalio.Direction.OUTPUT
@@ -77,31 +77,19 @@ print("mac address:", "%02x:%02x:%02x:%02x:%02x:%02x" % tuple(map(int, wifi.radi
 wifi.radio.connect(secrets['ssid'], secrets['password'])
 print("Connected to %s!" % secrets['ssid'])
 
-
-### CHOM
-
-
 ### Topic Setup ###
 
-# MQTT Topic
-# Use this topic if you'd like to connect to a standard MQTT broker
+# MQTT Topics. One for requesting, one for acknowledging.
+# The deal is that whenever someone needs to be let in, she'll hit the
+# button on the website, which will publish to `req` with the name of their
+# door. The µController will get this message and turn on the corresponding LED.
+# When a µController hits their button, they'll publish to `ack`, which everyone
+# is subscribed to. For now, any message on `ack` will be sent to all devices, and
+# everyone will trun their lights off, and the client will be directed to
+# the `someone is coming` screen.
 mqtt_req_topic = "letmein2/req"
 mqtt_ack_topic = "letmein2/ack"
-'''
-topics = {
-    "r_level_a"  : "letmein2/req_level_a",
-    "r_level_1"  : "letmein2/req_level_1",
-    "r_stairs_n" : "letmein2/req_stairs_n",
-    "r_stairs_s" : "letmein2/req_stairs_s",
-    "r_well_l"   : "letmein2/req_well_l",
-}
-'''
 
-# Adafruit IO-style Topic
-# Use this topic if you'd like to connect to io.adafruit.com
-# mqtt_topic = secrets["aio_username"] + '/feeds/temperature'
-
-### Code ###
 # Define callback methods which are called when events occur
 # pylint: disable=unused-argument, redefined-outer-name
 def connect(mqtt_client, userdata, flags, rc):
@@ -110,27 +98,22 @@ def connect(mqtt_client, userdata, flags, rc):
     print("Connected to MQTT Broker!")
     print("Flags: {0}\n RC: {1}".format(flags, rc))
 
-
+# This method is called when the mqtt_client disconnects
+# from the broker.
 def disconnect(mqtt_client, userdata, rc):
-    # This method is called when the mqtt_client disconnects
-    # from the broker.
     print("Disconnected from MQTT Broker!")
 
-
+# This method is called when the mqtt_client subscribes to a new feed.
 def subscribe(mqtt_client, userdata, topic, granted_qos):
-    # This method is called when the mqtt_client subscribes to a new feed.
     print("Subscribed to {0} with QOS level {1}".format(topic, granted_qos))
 
-
+# This method is called when the mqtt_client unsubscribes from a feed.
 def unsubscribe(mqtt_client, userdata, topic, pid):
-    # This method is called when the mqtt_client unsubscribes from a feed.
     print("Unsubscribed from {0} with PID {1}".format(topic, pid))
 
-
+# This method is called when the mqtt_client publishes data to a feed.
 def publish(mqtt_client, userdata, topic, pid):
-    # This method is called when the mqtt_client publishes data to a feed.
     print("Published to {0} with PID {1}".format(topic, pid))
-
 
 def message(client, topic, message):
     # Method called when a client's subscribed feed has a new value.
@@ -140,13 +123,18 @@ def message(client, topic, message):
             level_a.value = 1
         elif message == "level_1":
             level_1.value = 1
-        elif message == "stairs_s":
+        elif message == "s_stairs":
             s_stairs.value = 1
-        elif message == "stairs_n":
+        elif message == "n_stairs":
             n_stairs.value = 1
-        elif message == "well_l":
+        elif message == "l_well":
             pass # TODO: install l-well LED
-
+    elif topic == mqtt_ack_topic:
+        level_a.value = 0
+        level_1.value = 0
+        s_stairs.value = 0
+        n_stairs.value = 0
+        pass # TODO: install l-well LED
 
 # Create a socket pool
 pool = socketpool.SocketPool(wifi.radio)
@@ -170,26 +158,14 @@ mqtt_client.on_message = message
 print("Attempting to connect to %s" % mqtt_client.broker)
 mqtt_client.connect()
 
-#print("Subscribing to %s" % mqtt_topic)
-#mqtt_client.subscribe("req_s")
-
 '''
 for topic in topics.values():
     mqtt_client.subscribe(topic)
 '''
 mqtt_client.subscribe(mqtt_req_topic)
 mqtt_client.subscribe(mqtt_ack_topic)
-#print("Publishing to %s" % mqtt_topic)
-#mqtt_client.publish(mqtt_topic, "Hello Broker!")
 
-#print("Unsubscribing from %s" % mqtt_topic)
-#mqtt_client.unsubscribe(mqtt_topic)
-#
-#print("Disconnecting from %s" % mqtt_client.broker)
-#mqtt_client.disconnect()
-
-### CHOM
-
+# We're good to go
 print("Ready.")
 
 # Main loop
@@ -202,25 +178,9 @@ while True:
     if ack.value:
         location="usercenter"
         mqtt_client.publish(mqtt_ack_topic, f"{location}")
-
-        '''
-        s_stairs.value = 1
-        time.sleep(sleep_len)
         s_stairs.value = 0
-        time.sleep(sleep_len)
-
-        level_1.value = 1
-        time.sleep(sleep_len)
-        level_1.value = 0
-        time.sleep(sleep_len)
-
-        level_a.value = 1
-        time.sleep(sleep_len)
-        level_a.value = 0
-        time.sleep(sleep_len)
-
-        n_stairs.value = 1
-        time.sleep(sleep_len)
         n_stairs.value = 0
-        time.sleep(sleep_len)
-        '''
+        level_a.value = 0
+        level_1.value = 0
+        # well_l.value = 0 # TODO: install l well led
+
