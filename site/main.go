@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	//"time"
+	"time"
 	"github.com/gin-gonic/gin"
 )
 
@@ -86,6 +86,7 @@ func main() {
 	})
 
     r.POST("/response_acked", func(c *gin.Context) {
+        time.Sleep(3000 * time.Millisecond)
         c.String(200, "timeout");
     })
 
