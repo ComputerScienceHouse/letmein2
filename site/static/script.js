@@ -11,7 +11,7 @@ function request_ack() {
                 return resp.text().then(text => {
                     if (text === "timeout") {
                         element.innerHTML = "Timed out.";
-                    } else if (text === "buttonpressed") {
+                    } else if (text === "acked") {
                         element.innerHTML = "Request answered; Sit tight.";
                     }
                 });

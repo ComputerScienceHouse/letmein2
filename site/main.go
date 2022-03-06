@@ -7,9 +7,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var acked bool = false;
+
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
-    
+    if (msg.Topic() == "letmein2/ack") {
+        acked = true;
+    }
 }
 
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
@@ -86,8 +90,13 @@ func main() {
 	})
 
     r.POST("/response_acked", func(c *gin.Context) {
-        time.Sleep(3000 * time.Millisecond)
-        c.String(200, "timeout");
+        time.Sleep(7000 * time.Millisecond)
+        if (acked) {
+            c.String(200, "acked")
+            acked = false
+        } else {
+            c.String(200, "timeout")
+        }
     })
 
 	r.Run()
