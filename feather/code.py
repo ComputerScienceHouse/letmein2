@@ -1,11 +1,10 @@
 import time, gc, os
-import adafruit_dotstar
 import board
 import feathers2
 import digitalio
 import wifi
 import socketpool
-import ssl # TODO: Use this
+import ssl
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 import ipaddress
 import adafruit_requests
@@ -14,9 +13,6 @@ from secrets import secrets
 
 # Make sure the 2nd LDO is turned on
 feathers2.enable_LDO2(True)
-
-# Create a DotStar instance
-dotstar = adafruit_dotstar.DotStar(board.APA102_SCK, board.APA102_MOSI, 1, brightness=0.5, auto_write=True)
 
 # Say hello
 print('''
@@ -38,20 +34,26 @@ print('''
     :@@@@@@@@@@@@@@@@@@@@@@@@@e K@@@@W`
      .........................` `....-
 ''')
-print("--  -- =- CSH LetMeIn! v2.0alpha2 -= -- --\n")
+print('    -- =- CSH LetMeIn! v2.0alpha2 -= --\n')
 
 # Show available memory
-print("Memory Info - gc.mem_free()")
-print("---------------------------")
-print("{} Bytes\n".format(gc.mem_free()))
+print('Memory Info - gc.mem_free()')
+print('---------------------------')
+print(f'{gc.mem_free()} Bytes\n')
 
+# Show flash size
 flash = os.statvfs('/')
 flash_size = flash[0] * flash[2]
 flash_free = flash[0] * flash[3]
-# Show flash size
 print("Flash - os.statvfs('/')")
-print("---------------------------")
-print("Size: {} Bytes\nFree: {} Bytes\n".format(flash_size, flash_free))
+print('---------------------------')
+print(f"Size: {flash_size} Bytes\nFree: {flash_free} Bytes\n")
+
+# Set location of this device
+location = secrets["location"]
+if location == '':
+    print('Location not set! Please set location.')
+    exit(1)
 
 # Set up gpio
 level_a = digitalio.DigitalInOut(board.IO1)
@@ -66,27 +68,16 @@ n_stairs.direction = digitalio.Direction.OUTPUT
 ack = digitalio.DigitalInOut(board.IO5)
 ack.direction = digitalio.Direction.INPUT
 
-sleep_len = 0.2
-
 # Turn on the internal blue LED
 feathers2.led_set(True)
 
 # Connect to wifi
-print("Connecting to %s" % secrets['ssid'])
-print("mac address:", "%02x:%02x:%02x:%02x:%02x:%02x" % tuple(map(int, wifi.radio.mac_address)))
+print(f'Connecting to {secrets["ssid"]}')
+print('mac address:', "%02x:%02x:%02x:%02x:%02x:%02x" % tuple(map(int, wifi.radio.mac_address)))
 wifi.radio.connect(secrets['ssid'], secrets['password'])
-print("Connected to %s!" % secrets['ssid'])
+print(f'Connected to {secrets["ssid"]}!')
 
-### Topic Setup ###
-
-# MQTT Topics. One for requesting, one for acknowledging.
-# The deal is that whenever someone needs to be let in, she'll hit the
-# button on the website, which will publish to `req` with the name of their
-# door. The µController will get this message and turn on the corresponding LED.
-# When a µController hits their button, they'll publish to `ack`, which everyone
-# is subscribed to. For now, any message on `ack` will be sent to all devices, and
-# everyone will trun their lights off, and the client will be directed to
-# the `someone is coming` screen.
+# Topic Setup
 mqtt_req_topic = "letmein2/req"
 mqtt_ack_topic = "letmein2/ack"
 
@@ -158,15 +149,25 @@ mqtt_client.on_message = message
 print("Attempting to connect to %s" % mqtt_client.broker)
 mqtt_client.connect()
 
-'''
-for topic in topics.values():
-    mqtt_client.subscribe(topic)
-'''
 mqtt_client.subscribe(mqtt_req_topic)
 mqtt_client.subscribe(mqtt_ack_topic)
 
 # We're good to go
-print("Ready.")
+print('''
+
+     /$$$$$$$                            /$$
+    | $$__  $$                          | $$
+    | $$  \ $$  /$$$$$$   /$$$$$$   /$$$$$$$ /$$   /$$
+    | $$$$$$$/ /$$__  $$ |____  $$ /$$__  $$| $$  | $$
+    | $$__  $$| $$$$$$$$  /$$$$$$$| $$  | $$| $$  | $$
+    | $$  \ $$| $$_____/ /$$__  $$| $$  | $$| $$  | $$
+    | $$  | $$|  $$$$$$$|  $$$$$$$|  $$$$$$$|  $$$$$$$ /$$
+    |__/  |__/ \_______/ \_______/ \_______/ \____  $$|__/
+                                             /$$  | $$
+                                            |  $$$$$$/
+                                             \______/
+
+''')
 
 # Main loop
 while True:
@@ -174,13 +175,12 @@ while True:
     # Checks for updates
     mqtt_client.loop()
 
-#    s_stairs.value = ack.value
     if ack.value:
-        location="usercenter"
         mqtt_client.publish(mqtt_ack_topic, f"{location}")
         s_stairs.value = 0
         n_stairs.value = 0
         level_a.value = 0
         level_1.value = 0
         # well_l.value = 0 # TODO: install l well led
+        time.sleep(1) # IDK if this'll help anything but we'll see.
 
