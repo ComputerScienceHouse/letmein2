@@ -50,9 +50,9 @@ func main() {
     })
     r.GET("/req_level_a", func(c *gin.Context) {
         c.String(200, "Requesting...")
-        token := client.Publish("letmein2/req_level_a", 0, false, "Hello World")
+        token := client.Publish("letmein2/req", 0, false, "stairs_s")
         token.Wait()
-        c.String(200, "Let me in on A Level!")
+        c.String(200, "Let me in on S Stairs!")
     })
     r.Run()
 
