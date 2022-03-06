@@ -7,21 +7,23 @@ import (
 	"time"
 )
 
-var acked bool = false
+var req_channels []chan bool
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
 	if msg.Topic() == "letmein2/ack" {
-		acked = true
+		for _, c := range req_channels {
+			c <- true
+		}
 	}
 }
 
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
-	fmt.Println("Connected")
+	fmt.Println("Connected\n")
 }
 
 var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
-	fmt.Printf("Connect lost: %v", err)
+	fmt.Printf("Connect lost: %v\n", err)
 }
 
 func sub(client mqtt.Client, topic string) {
@@ -57,12 +59,10 @@ func main() {
 
 	// Route definitions
 	r.GET("/", func(c *gin.Context) {
-        acked = false
 		c.HTML(200, "home.tmpl", gin.H{})
 	})
 
 	r.GET("/req_s_stairs", func(c *gin.Context) {
-        acked = false // TODO: AAARRRRGGGHHHH
 		token := client.Publish("letmein2/req", 0, false, "s_stairs")
 		token.Wait()
 		c.HTML(200, "request.tmpl", gin.H{
@@ -71,16 +71,14 @@ func main() {
 	})
 
 	r.GET("/req_n_stairs", func(c *gin.Context) {
-        acked = false // TODO: AAARRRRGGGHHHH
 		token := client.Publish("letmein2/req", 0, false, "n_stairs")
 		token.Wait()
-        c.HTML(200, "request.tmpl", gin.H{
+		c.HTML(200, "request.tmpl", gin.H{
 			"location": "North Side Stairwell",
 		})
 	})
 
 	r.GET("/req_level_a", func(c *gin.Context) {
-        acked = false // TODO: AAARRRRGGGHHHH
 		token := client.Publish("letmein2/req", 0, false, "level_a")
 		token.Wait()
 		c.HTML(200, "request.tmpl", gin.H{
@@ -89,7 +87,6 @@ func main() {
 	})
 
 	r.GET("/req_level_1", func(c *gin.Context) {
-        acked = false // TODO: AAARRRRGGGHHHH
 		token := client.Publish("letmein2/req", 0, false, "level_1")
 		token.Wait()
 		c.HTML(200, "request.tmpl", gin.H{
@@ -98,7 +95,6 @@ func main() {
 	})
 
 	r.GET("/req_l_well", func(c *gin.Context) {
-        acked = false // TODO: AAARRRRGGGHHHH
 		token := client.Publish("letmein2/req", 0, false, "l_well")
 		token.Wait()
 		c.HTML(200, "request.tmpl", gin.H{
@@ -106,27 +102,51 @@ func main() {
 		})
 	})
 
-    r.GET("/nvm", func(c *gin.Context) { 
-        token := client.Publish("letmein2/ack", 0, false, "nvm")
-        token.Wait()
+	r.GET("/nvm", func(c *gin.Context) {
+		token := client.Publish("letmein2/ack", 0, false, "nvm")
+		token.Wait()
 		c.Redirect(302, "/")
-    })
+	})
 
-	r.POST("/response_acked", func(c *gin.Context) {
-		// This is fucking disgusting. Goddammit.
-        timeout_period := 10
-		for i := 0; i < timeout_period; i++ {
-			time.Sleep(1000 * time.Millisecond)
+	r.POST("/response_acked", func(c *gin.Context) { // TODO: Change the name to be less confusing
+		ch := make(chan bool)
+		request_timeout_period := 30
+		req_channels = append(req_channels, ch)
+		select {
+		case acked := <-ch:
 			if acked {
 				c.String(200, "acked")
-				acked = false
 				return
+			} else {
+				c.String(401, "fuckoff")
 			}
+		case <-time.After(time.Second * time.Duration(request_timeout_period)):
+			c.String(408, "timeout")
+			token := client.Publish("letmein2/ack", 0, false, "timeout")
+			token.Wait()
+			return
 		}
-		c.String(408, "timeout")
-        token := client.Publish("letmein2/ack", 0, false, "timeout")
-        token.Wait()
-		return
+		/*
+		           acked := <- ch
+		           if acked {
+
+		           } else {
+
+		           }
+
+		   		// This is fucking disgusting. Goddammit.
+		   		for i := 0; i < 30; i++ {
+		   			time.Sleep(1000 * time.Millisecond)
+		   			if acked {
+		   				c.String(200, "acked")
+		   				acked = false
+		   				return
+		   			}
+		   		}
+		   		c.String(408, "timeout")
+		           token := client.Publish("letmein2/ack", 0, false, "timeout")
+		           token.Wait()
+		   		return*/
 	})
 
 	r.Run()
