@@ -3,17 +3,17 @@ package main
 import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"time"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
-var acked bool = false;
+var acked bool = false
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
-    if (msg.Topic() == "letmein2/ack") {
-        acked = true;
-    }
+	if msg.Topic() == "letmein2/ack" {
+		acked = true
+	}
 }
 
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
@@ -31,7 +31,7 @@ func sub(client mqtt.Client, topic string) {
 }
 
 func main() {
-    // MQTT setup (and a lot of it)
+	// MQTT setup (and a lot of it)
 	var broker = "mqtt.csh.rit.edu"
 	var port = 1883
 	opts := mqtt.NewClientOptions()
@@ -45,30 +45,30 @@ func main() {
 		panic(token.Error())
 	}
 
-    // Subscribe to topics
+	// Subscribe to topics
 	sub(client, "letmein2/req")
 	sub(client, "letmein2/ack")
 
-    // Gin Setup
+	// Gin Setup
 	r := gin.Default()
 	r.SetTrustedProxies([]string{"0.0.0.0"})
 	r.LoadHTMLGlob("/templates/*")
 	r.Static("/static", "/static")
 
-    // Route definitions
+	// Route definitions
 	r.GET("/", func(c *gin.Context) {
 		//c.String(200, "Welcome to LetMeIn2!")
-        c.HTML(200, "home.tmpl", gin.H{})
+		c.HTML(200, "home.tmpl", gin.H{})
 
 	})
 
 	r.GET("/req_s_stairs", func(c *gin.Context) {
 		token := client.Publish("letmein2/req", 0, false, "s_stairs")
 		token.Wait()
-        //c.String(200, "Let me in on S Stairs!")
-        c.HTML(200, "request.tmpl", gin.H{
-		"location": "South Side Stairwell",
-        })
+		//c.String(200, "Let me in on S Stairs!")
+		c.HTML(200, "request.tmpl", gin.H{
+			"location": "South Side Stairwell",
+		})
 	})
 
 	r.GET("/req_n_stairs", func(c *gin.Context) {
@@ -89,15 +89,19 @@ func main() {
 		c.String(200, "Let me in on Level 1!")
 	})
 
-    r.POST("/response_acked", func(c *gin.Context) {
-        time.Sleep(7000 * time.Millisecond)
-        if (acked) {
-            c.String(200, "acked")
-            acked = false
-        } else {
-            c.String(200, "timeout")
-        }
-    })
+	r.POST("/response_acked", func(c *gin.Context) {
+		// This is fucking disgusting. Goddammit.
+		for i := 0; i < 30; i++ {
+			time.Sleep(1000 * time.Millisecond)
+			if acked {
+				c.String(200, "acked")
+				acked = false
+				return
+			}
+		}
+		c.String(200, "timeout")
+		return
+	})
 
 	r.Run()
 
