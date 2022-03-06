@@ -57,37 +57,60 @@ func main() {
 
 	// Route definitions
 	r.GET("/", func(c *gin.Context) {
-		//c.String(200, "Welcome to LetMeIn2!")
 		c.HTML(200, "home.tmpl", gin.H{})
-
 	})
 
 	r.GET("/req_s_stairs", func(c *gin.Context) {
+        acked = false // TODO: AAARRRRGGGHHHH
 		token := client.Publish("letmein2/req", 0, false, "s_stairs")
 		token.Wait()
-		//c.String(200, "Let me in on S Stairs!")
 		c.HTML(200, "request.tmpl", gin.H{
 			"location": "South Side Stairwell",
 		})
 	})
 
 	r.GET("/req_n_stairs", func(c *gin.Context) {
+        acked = false // TODO: AAARRRRGGGHHHH
 		token := client.Publish("letmein2/req", 0, false, "n_stairs")
 		token.Wait()
-		c.String(200, "Let me in on N Stairs!")
+        c.HTML(200, "request.tmpl", gin.H{
+			"location": "North Side Stairwell",
+		})
 	})
 
 	r.GET("/req_level_a", func(c *gin.Context) {
+        acked = false // TODO: AAARRRRGGGHHHH
 		token := client.Publish("letmein2/req", 0, false, "level_a")
 		token.Wait()
-		c.String(200, "Let me in on Level A!")
+		c.HTML(200, "request.tmpl", gin.H{
+			"location": "Level A Elevator Lobby",
+		})
 	})
 
 	r.GET("/req_level_1", func(c *gin.Context) {
-		token := client.Publish("letmein3/req", 0, false, "level_1")
+        acked = false // TODO: AAARRRRGGGHHHH
+		token := client.Publish("letmein2/req", 0, false, "level_1")
 		token.Wait()
-		c.String(200, "Let me in on Level 1!")
+		c.HTML(200, "request.tmpl", gin.H{
+			"location": "Level 1 Elevator Lobby",
+		})
 	})
+
+	r.GET("/req_l_well", func(c *gin.Context) {
+        acked = false // TODO: AAARRRRGGGHHHH
+		token := client.Publish("letmein2/req", 0, false, "l_well")
+		token.Wait()
+		c.HTML(200, "request.tmpl", gin.H{
+			"location": "L Well",
+		})
+	})
+
+    r.GET("/nvm", func(c *gin.Context) { 
+        acked = false // TODO: AAARRRRGGGHHHH
+        token := client.Publish("letmein2/ack", 0, false, "nvm")
+        token.Wait()
+		c.Redirect(302, "/")
+    })
 
 	r.POST("/response_acked", func(c *gin.Context) {
 		// This is fucking disgusting. Goddammit.
@@ -99,7 +122,9 @@ func main() {
 				return
 			}
 		}
-		c.String(200, "timeout")
+		c.String(408, "timeout")
+        token := client.Publish("letmein2/ack", 0, false, "timeout")
+        token.Wait()
 		return
 	})
 
