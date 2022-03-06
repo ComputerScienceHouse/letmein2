@@ -7,14 +7,18 @@ import (
 	"time"
 )
 
-var req_channels []chan bool
+//var req_channels []chan bool
+
+// Open a channel for requests
+var request_channel chan bool 
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
 	if msg.Topic() == "letmein2/ack" {
-		for _, c := range req_channels {
+		/*for _, c := range req_channels {
 			c <- true
-		}
+		}*/
+        request_channel <- true
 	}
 }
 
@@ -50,6 +54,9 @@ func main() {
 	// Subscribe to topics
 	sub(client, "letmein2/req")
 	sub(client, "letmein2/ack")
+
+    // Open a channel for requests
+    request_channel = make(chan bool)
 
 	// Gin Setup
 	r := gin.Default()
@@ -108,48 +115,27 @@ func main() {
 		c.Redirect(302, "/")
 	})
 
-	r.POST("/response_acked", func(c *gin.Context) { // TODO: Change the name to be less confusing
-		ch := make(chan bool)
-		request_timeout_period := 5
-		req_channels = append(req_channels, ch)
+	r.POST("/anybody_home", func(c *gin.Context) {
+		//ch := make(chan bool)
+        request_timeout_period := 30 // TODO: Use an environment variable, you dingus!
+		//req_channels = append(req_channels, ch)
 		select {
-		case acked := <-ch:
+		case acked := <-request_channel:
 			if acked {
 				c.String(200, "acked")
-				return
 			} else {
-				c.String(401, "fuckoff")
+				c.String(401, "fuckoff") // I think it would be funny to handle different messages
 			}
 		case <-time.After(time.Second * time.Duration(request_timeout_period)):
 			c.String(408, "timeout")
 			token := client.Publish("letmein2/ack", 0, false, "timeout")
 			token.Wait()
-			return
 		}
-		/*
-		           acked := <- ch
-		           if acked {
-
-		           } else {
-
-		           }
-
-		   		// This is fucking disgusting. Goddammit.
-		   		for i := 0; i < 30; i++ {
-		   			time.Sleep(1000 * time.Millisecond)
-		   			if acked {
-		   				c.String(200, "acked")
-		   				acked = false
-		   				return
-		   			}
-		   		}
-		   		c.String(408, "timeout")
-		           token := client.Publish("letmein2/ack", 0, false, "timeout")
-		           token.Wait()
-		   		return*/
+        //close(ch)
 	})
 
 	r.Run()
 
 	client.Disconnect(250)
+    close(request_channel)
 }

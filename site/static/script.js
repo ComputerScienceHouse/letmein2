@@ -1,6 +1,6 @@
 function request_ack() {
     element = document.getElementById("notification_header");
-    fetch(`/response_acked`, {
+    fetch(`/anybody_home`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
