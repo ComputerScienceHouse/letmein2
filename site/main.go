@@ -2,14 +2,24 @@ package main
 
 import (
 	"fmt"
+	"time"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
-// Slice used to keep track of active letmein requests
+// Slice of channels used to keep track of active letmein requests
 var req_channels []chan bool
 
+var location_map = map[string]string{
+	"n_stairs": "North Side Stairwell",
+	"s_stairs": "South Side Stairwell",
+	"level_a":  "Level A Elevator Lobby",
+	"level_1":  "Level 1 Elevator Lobby",
+	"l_well":   "L Well",
+}
+
+// TODO: Structured logging into Datadog?
 // Handle messages from subscribed topics
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
@@ -74,46 +84,56 @@ func main() {
 		c.HTML(200, "home.tmpl", gin.H{})
 	})
 
-	r.GET("/req_s_stairs", func(c *gin.Context) {
-		token := client.Publish("letmein2/req", 0, false, "s_stairs")
+	r.POST("/request/:location", func(c *gin.Context) {
+		loc := c.Param("location")
+
+		token := client.Publish("letmein2/req", 0, false, loc)
 		token.Wait()
 		c.HTML(200, "request.tmpl", gin.H{
-			"location": "South Side Stairwell",
+    "location": location_map[c.Param("location")],
 		})
 	})
-
-	r.GET("/req_n_stairs", func(c *gin.Context) {
-		token := client.Publish("letmein2/req", 0, false, "n_stairs")
-		token.Wait()
-		c.HTML(200, "request.tmpl", gin.H{
-			"location": "North Side Stairwell",
+	/*
+		r.GET("/req_s_stairs", func(c *gin.Context) {
+			token := client.Publish("letmein2/req", 0, false, "s_stairs")
+			token.Wait()
+			c.HTML(200, "request.tmpl", gin.H{
+				"location": "South Side Stairwell",
+			})
 		})
-	})
 
-	r.GET("/req_level_a", func(c *gin.Context) {
-		token := client.Publish("letmein2/req", 0, false, "level_a")
-		token.Wait()
-		c.HTML(200, "request.tmpl", gin.H{
-			"location": "Level A Elevator Lobby",
+		r.GET("/req_n_stairs", func(c *gin.Context) {
+			token := client.Publish("letmein2/req", 0, false, "n_stairs")
+			token.Wait()
+			c.HTML(200, "request.tmpl", gin.H{
+				"location": "North Side Stairwell",
+			})
 		})
-	})
 
-	r.GET("/req_level_1", func(c *gin.Context) {
-		token := client.Publish("letmein2/req", 0, false, "level_1")
-		token.Wait()
-		c.HTML(200, "request.tmpl", gin.H{
-			"location": "Level 1 Elevator Lobby",
+		r.GET("/req_level_a", func(c *gin.Context) {
+			token := client.Publish("letmein2/req", 0, false, "level_a")
+			token.Wait()
+			c.HTML(200, "request.tmpl", gin.H{
+				"location": "Level A Elevator Lobby",
+			})
 		})
-	})
 
-	r.GET("/req_l_well", func(c *gin.Context) {
-		token := client.Publish("letmein2/req", 0, false, "l_well")
-		token.Wait()
-		c.HTML(200, "request.tmpl", gin.H{
-			"location": "L Well",
+		r.GET("/req_level_1", func(c *gin.Context) {
+			token := client.Publish("letmein2/req", 0, false, "level_1")
+			token.Wait()
+			c.HTML(200, "request.tmpl", gin.H{
+				"location": "Level 1 Elevator Lobby",
+			})
 		})
-	})
 
+		r.GET("/req_l_well", func(c *gin.Context) {
+			token := client.Publish("letmein2/req", 0, false, "l_well")
+			token.Wait()
+			c.HTML(200, "request.tmpl", gin.H{
+				"location": "L Well",
+			})
+		})
+	*/
 	r.GET("/nvm", func(c *gin.Context) {
 		token := client.Publish("letmein2/ack", 0, false, "nvm")
 		token.Wait()
