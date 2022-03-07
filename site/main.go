@@ -85,55 +85,16 @@ func main() {
 	})
 
 	r.POST("/request/:location", func(c *gin.Context) {
-		loc := c.Param("location")
-
-		token := client.Publish("letmein2/req", 0, false, loc)
+		token := client.Publish("letmein2/req", 0, false, c.Param("location"))
 		token.Wait()
-		c.HTML(200, "request.tmpl", gin.H{
+	})
+    
+    r.GET("/request/:location", func(c *gin.Context) {
+        c.HTML(200, "request.tmpl", gin.H{
     "location": location_map[c.Param("location")],
 		})
-	})
-	/*
-		r.GET("/req_s_stairs", func(c *gin.Context) {
-			token := client.Publish("letmein2/req", 0, false, "s_stairs")
-			token.Wait()
-			c.HTML(200, "request.tmpl", gin.H{
-				"location": "South Side Stairwell",
-			})
-		})
+    })
 
-		r.GET("/req_n_stairs", func(c *gin.Context) {
-			token := client.Publish("letmein2/req", 0, false, "n_stairs")
-			token.Wait()
-			c.HTML(200, "request.tmpl", gin.H{
-				"location": "North Side Stairwell",
-			})
-		})
-
-		r.GET("/req_level_a", func(c *gin.Context) {
-			token := client.Publish("letmein2/req", 0, false, "level_a")
-			token.Wait()
-			c.HTML(200, "request.tmpl", gin.H{
-				"location": "Level A Elevator Lobby",
-			})
-		})
-
-		r.GET("/req_level_1", func(c *gin.Context) {
-			token := client.Publish("letmein2/req", 0, false, "level_1")
-			token.Wait()
-			c.HTML(200, "request.tmpl", gin.H{
-				"location": "Level 1 Elevator Lobby",
-			})
-		})
-
-		r.GET("/req_l_well", func(c *gin.Context) {
-			token := client.Publish("letmein2/req", 0, false, "l_well")
-			token.Wait()
-			c.HTML(200, "request.tmpl", gin.H{
-				"location": "L Well",
-			})
-		})
-	*/
 	r.GET("/nvm", func(c *gin.Context) {
 		token := client.Publish("letmein2/ack", 0, false, "nvm")
 		token.Wait()

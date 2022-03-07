@@ -10,11 +10,9 @@ function request_ack() {
     })
         .then(resp => {
             console.log(resp);
-            if (resp.status == 200) { // TODO: Using 408 on the backend broke this
+            if (resp.status == 200) {
                 return resp.text().then(text => {
-                    if (text === "timeout") {
-                        notification_header.innerHTML = "Timed out.";
-                    } else if (text === "acked") {
+                    if (text === "acked") {
                         notification_header.innerHTML = "Request answered; Sit tight.";
                         home_link.hidden = false;
                         cancel_link.hidden = true;

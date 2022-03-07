@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
-<head></head>
+<head>
+    <script src="/static/home.js"></script>
+</head>
 <body>
     <h1>
         Welcome to LetMeIn
@@ -9,12 +11,15 @@
     <h2>
         Where are you?
     </h2>
-    <ul>
-        <li><a href="/request/s_stairs">South Side Stairwell</a></li>
-        <li><a href="/request/n_stairs">North Side Stairwell</a></li>
-        <li><a href="/request/level_a">Level A Lobby</a></li>
-        <li><a href="/request/level_1">Level 1 Lobby</a></li>
-        <li><a href="/request/l_well">L Well</a></li>
+    <ul id="locationList">
+        <li><button id="s_stairs">South Side Stairwell</button></li>
+        <li><button id="n_stairs">North Side Stairwell</button></li>
+        <li><button id="level_a">Level A Lobby</button></li>
+        <li><button id="level_1">Level 1 Lobby</button></li>
+        <li><button id="l_well">L Well</button></li>
     </ul>
 </body>
+<script>
+    homePageSetup();
+</script>
 </html>
