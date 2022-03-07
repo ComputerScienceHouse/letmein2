@@ -7,18 +7,20 @@ import (
 	"time"
 )
 
-//var req_channels []chan bool
+var req_channels []chan bool
 
 // Open a channel for requests
-var request_channel chan bool 
+//var request_channel chan bool
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
-	if msg.Topic() == "letmein2/ack" {
-		/*for _, c := range req_channels {
-			c <- true
-		}*/
-        request_channel <- true
+	if msg.Topic() == "letmein2/ack" && string(msg.Payload()) != "timeout" {
+		for _, c := range req_channels {
+            if c != nil {
+			    c <- true
+            }
+		}
+		req_channels = nil
 	}
 }
 
@@ -55,8 +57,8 @@ func main() {
 	sub(client, "letmein2/req")
 	sub(client, "letmein2/ack")
 
-    // Open a channel for requests
-    request_channel = make(chan bool)
+	// Open a channel for requests
+	//request_channel = make(chan bool)
 
 	// Gin Setup
 	r := gin.Default()
@@ -116,26 +118,31 @@ func main() {
 	})
 
 	r.POST("/anybody_home", func(c *gin.Context) {
-		//ch := make(chan bool)
-        request_timeout_period := 30 // TODO: Use an environment variable, you dingus!
-		//req_channels = append(req_channels, ch)
+		ch := make(chan bool)
+        channel_index := len(req_channels) // Lol +1
+		request_timeout_period := 10 // TODO: Use an environment variable, you dingus!
+		req_channels = append(req_channels, ch)
+		fmt.Println("Anybody home? Channel count = ", len(req_channels))
 		select {
-		case acked := <-request_channel:
+		case acked := <-ch:
 			if acked {
 				c.String(200, "acked")
 			} else {
 				c.String(401, "fuckoff") // I think it would be funny to handle different messages
 			}
 		case <-time.After(time.Second * time.Duration(request_timeout_period)):
+            // req_channels[channel_index] = nil
+            req_channels[channel_index] = req_channels[len(req_channels)-1] 
+            req_channels = req_channels[:len(req_channels)-1]
+
 			c.String(408, "timeout")
 			token := client.Publish("letmein2/ack", 0, false, "timeout")
 			token.Wait()
 		}
-        //close(ch)
+		close(ch)
 	})
 
 	r.Run()
 
 	client.Disconnect(250)
-    close(request_channel)
 }
