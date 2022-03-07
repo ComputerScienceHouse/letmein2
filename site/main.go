@@ -81,7 +81,9 @@ func main() {
 
 	// Route definitions
 	r.GET("/", func(c *gin.Context) {
-		c.HTML(200, "home.tmpl", gin.H{})
+		c.HTML(200, "home.tmpl", gin.H{
+            "location_map" : location_map,
+        })
 	})
 
 	r.POST("/request/:location", func(c *gin.Context) {
@@ -91,7 +93,7 @@ func main() {
     
     r.GET("/request/:location", func(c *gin.Context) {
         c.HTML(200, "request.tmpl", gin.H{
-    "location": location_map[c.Param("location")],
+            "location": location_map[c.Param("location")],
 		})
     })
 

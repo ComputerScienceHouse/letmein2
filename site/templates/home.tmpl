@@ -12,11 +12,9 @@
         Where are you?
     </h2>
     <ul id="locationList">
-        <li><button id="s_stairs">South Side Stairwell</button></li>
-        <li><button id="n_stairs">North Side Stairwell</button></li>
-        <li><button id="level_a">Level A Lobby</button></li>
-        <li><button id="level_1">Level 1 Lobby</button></li>
-        <li><button id="l_well">L Well</button></li>
+        {{ range $key, $value := .location_map }}
+        <li><button id="{{ $key }}">{{ $value }}</button></li>
+        {{ end }}
     </ul>
 </body>
 <script>
