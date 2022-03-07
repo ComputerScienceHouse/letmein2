@@ -80,23 +80,28 @@ func main() {
 	r.Static("/static", "/static")
 
 	// Route definitions
+
+    // Homepage
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(200, "home.tmpl", gin.H{
             "location_map" : location_map,
         })
 	})
 
+    // Request to publish to MQTT
 	r.POST("/request/:location", func(c *gin.Context) {
 		token := client.Publish("letmein2/req", 0, false, c.Param("location"))
 		token.Wait()
 	})
     
+    // Request to load the waiting screen 
     r.GET("/request/:location", func(c *gin.Context) {
         c.HTML(200, "request.tmpl", gin.H{
             "location": location_map[c.Param("location")],
 		})
     })
 
+    // For canceling requests
 	r.GET("/nvm", func(c *gin.Context) {
 		token := client.Publish("letmein2/ack", 0, false, "nvm")
 		token.Wait()
@@ -108,6 +113,8 @@ func main() {
 	   Will set up a channel, then wait a given amount of time for
 	   an answer. If an answer is received, it will resolve to a 200,
 	   otherwise it'll 408.
+
+       This is kinda cringe
 	*/
 	r.POST("/anybody_home", func(c *gin.Context) {
 		ch := make(chan bool)
@@ -119,7 +126,7 @@ func main() {
 			if acked {
 				c.String(200, "acked")
 			} else {
-				c.String(401, "fuckoff") // it would be funny to handle different messages
+				c.String(401, "wtf") // This shouldn't happen lol
 			}
 		case <-time.After(time.Second * time.Duration(request_timeout_period)):
 			// Remove a timed out channel from the channel slice, as to not crash the server :)
