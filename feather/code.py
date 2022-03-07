@@ -56,17 +56,25 @@ if location == '':
     exit(1)
 
 # Set up gpio
+
+# LEDs to indicate request location
 level_a = digitalio.DigitalInOut(board.IO1)
 level_1 = digitalio.DigitalInOut(board.IO3)
 n_stairs = digitalio.DigitalInOut(board.IO7)
 s_stairs = digitalio.DigitalInOut(board.IO10)
+l_well = digitalio.DigitalInOut(board.IO11)
+
 s_stairs.direction = digitalio.Direction.OUTPUT
 level_1.direction = digitalio.Direction.OUTPUT
 level_a.direction = digitalio.Direction.OUTPUT
 n_stairs.direction = digitalio.Direction.OUTPUT
+l_well.direction = digitalio.Direction.OUTPUT
 
+# Button for acking requests
 ack = digitalio.DigitalInOut(board.IO5)
 ack.direction = digitalio.Direction.INPUT
+
+# TODO: Sound lol
 
 # Turn on the internal blue LED
 feathers2.led_set(True)
@@ -119,14 +127,14 @@ def message(client, topic, message):
         elif message == "n_stairs":
             n_stairs.value = 1
         elif message == "l_well":
-            pass # TODO: install l-well LED
+            l_well.value = 1
     elif topic == mqtt_ack_topic:
         level_a.value = 0
         level_1.value = 0
         s_stairs.value = 0
         n_stairs.value = 0
-        pass # TODO: install l-well LED
-
+        l_well.value = 0
+    
 # Create a socket pool
 pool = socketpool.SocketPool(wifi.radio)
 
@@ -181,6 +189,5 @@ while True:
         n_stairs.value = 0
         level_a.value = 0
         level_1.value = 0
-        # well_l.value = 0 # TODO: install l well led
-        time.sleep(1) # IDK if this'll help anything but we'll see.
+        l_well.value = 0
 
