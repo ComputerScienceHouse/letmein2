@@ -90,15 +90,25 @@ func main() {
 
     // Request to publish to MQTT
 	r.POST("/request/:location", func(c *gin.Context) {
-		token := client.Publish("letmein2/req", 0, false, c.Param("location"))
-		token.Wait()
+        _, exists := location_map[c.Param("location")]
+        if exists {
+            token := client.Publish("letmein2/req", 0, false, c.Param("location"))
+	    	token.Wait()
+        } else {
+            c.String(404, "Unknown Location.");
+        }
 	})
     
     // Request to load the waiting screen 
     r.GET("/request/:location", func(c *gin.Context) {
-        c.HTML(200, "request.tmpl", gin.H{
-            "location": location_map[c.Param("location")],
-		})
+        _, exists := location_map[c.Param("location")]
+        if exists {
+            c.HTML(200, "request.tmpl", gin.H{
+                "location": location_map[c.Param("location")],
+            })
+        } else {
+            c.String(404, "Unknown Location.");
+        }
     })
 
     // For canceling requests
