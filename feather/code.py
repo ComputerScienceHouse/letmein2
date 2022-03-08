@@ -9,6 +9,7 @@ import adafruit_minimqtt.adafruit_minimqtt as MQTT
 import ipaddress
 import adafruit_requests
 import pulseio
+import asynccp
 
 from secrets import secrets
 
@@ -77,14 +78,16 @@ ack.direction = digitalio.Direction.INPUT
 
 # Sound lol
 # Define a list of tones/music notes to play.
-TONE_FREQ = [ 262,  # C4
-              294,  # D4
-              330,  # E4
-              349,  # F4
-              392,  # G4
-              440,  # A4
-              494,  # B4
-              530   # C5(tm)] 
+TONE_FREQ = [
+              262,  # C4    - 0
+              294,  # D4    - 1
+              330,  # E4    - 2
+              349,  # F4    - 3
+              392,  # G4    - 4
+              440,  # A4    - 5
+              494,  # B4    - 6
+              530  # C5(tm) - 7
+            ]
 
 # Create piezo buzzer PWM output.
 buzzer = pulseio.PWMOut(board.IO6, variable_frequency=True)
@@ -108,6 +111,25 @@ def startup_jingle():
         buzzer.frequency = TONE_FREQ[i]
         time.sleep(0.1)  # Half second delay.
     buzz_off() 
+
+def south_stairs_jingle():
+    buzz_on()
+    buzzer.frequency = TONE_FREQ[7]
+    time.sleep(0.2)
+    buzzer.frequency = TONE_FREQ[3]
+    time.sleep(1.0)
+
+    buzzer.frequency = TONE_FREQ[7]
+    time.sleep(0.2)
+    buzzer.frequency = TONE_FREQ[3]
+    time.sleep(0.2)
+
+    buzzer.frequency = TONE_FREQ[4]
+    time.sleep(1.0)
+
+    buzzer.frequency = TONE_FREQ[7]
+    time.sleep(2.0)
+    buzz_off()
 
 buzzer.frequency = TONE_FREQ[0]
 buzz_on()
@@ -219,17 +241,52 @@ print('''
 
 ''')
 
-# Main loop
-while True:
 
-    # Checks for updates
+class LMIClient:
+    #def __init__(self):
+
+    async def read_ack(self):
+        if ack.value:
+            buzz_off()
+            mqtt_client.publish(mqtt_ack_topic, f"{location}")
+            s_stairs.value = 0
+            n_stairs.value = 0
+            level_a.value = 0
+            level_1.value = 0
+            l_well.value = 0
+            await asynccp.delay(1)
+
+    async def check_req(self):
+        if s_stairs.value:
+            s_stairs.value = 1
+            south_stairs_jingle()
+
+def main_loop():
+
+    app = LMIClient()
     mqtt_client.loop()
 
-    if ack.value:
-        mqtt_client.publish(mqtt_ack_topic, f"{location}")
-        s_stairs.value = 0
-        n_stairs.value = 0
-        level_a.value = 0
-        level_1.value = 0
-        l_well.value = 0
+    asynccp.schedule(frequency=80, coroutine_function=app.read_ack)
+    asynccp.schedule(frequency=10, coroutine_function=app.check_req)
+    asynccp.run()
 
+'''
+    # Main loop
+    while True:
+
+        # Checks for updates
+        mqtt_client.loop()
+
+        if s_stairs.value:
+            await south_stairs_jingle()
+
+        if ack.value:
+            mqtt_client.publish(mqtt_ack_topic, f"{location}")
+            s_stairs.value = 0
+            n_stairs.value = 0
+            level_a.value = 0
+            level_1.value = 0
+            l_well.value = 0
+'''
+
+main_loop()
