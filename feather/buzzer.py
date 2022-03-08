@@ -22,8 +22,14 @@ class Buzzer:
     def __init__(self, io_pin):
         self.buzzer = pulseio.PWMOut(io_pin, variable_frequency=True)
 
+    def is_on(self):
+        return self.buzzer.duty_cycle == self.speaker_on
+
     def on(self):
         self.buzzer.duty_cycle = self.speaker_on
+
+    def is_off(self):
+        return self.buzzer.duty_cycle == self.speaker_off
 
     def off(self):
         self.buzzer.duty_cycle = self.speaker_off
