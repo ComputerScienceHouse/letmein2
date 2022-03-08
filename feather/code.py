@@ -104,7 +104,7 @@ def buzz_on():
 def buzz_off():
     buzzer.duty_cycle = speaker_off
 
-def startup_jingle():
+def ready_jingle():
     buzz_on()
     # Play tones going from start to end of list.
     for i in range(len(TONE_FREQ)):
@@ -112,31 +112,54 @@ def startup_jingle():
         time.sleep(0.1)  # Half second delay.
     buzz_off() 
 
+async def boot_jingle():
+    buzzer.frequency = TONE_FREQ[0]
+    buzz_on()
+    await asynccp.delay(0.1)
+    buzzer.frequency = TONE_FREQ[3]
+    await asynccp.delay(0.2)
+    buzz_off()
+
 async def south_stairs_jingle():
     buzz_on()
     buzzer.frequency = TONE_FREQ[7]
     await asynccp.delay(0.2)
     buzzer.frequency = TONE_FREQ[3]
     await asynccp.delay(1.0)
-
     buzzer.frequency = TONE_FREQ[7]
     await asynccp.delay(0.2)
     buzzer.frequency = TONE_FREQ[3]
     await asynccp.delay(0.2)
-
     buzzer.frequency = TONE_FREQ[4]
     await asynccp.delay(1.0)
-
     buzzer.frequency = TONE_FREQ[7]
     await asynccp.delay(2.0)
     buzz_off()
 
-buzzer.frequency = TONE_FREQ[0]
-buzz_on()
-time.sleep(0.1)
-buzzer.frequency = TONE_FREQ[3]
-time.sleep(0.2)
-buzz_off()
+async def north_stairs_jingle():
+    buzz_on()
+    for x in range(0, 2):
+        buzzer.frequency = TONE_FREQ[0]
+        await asynccp.delay(0.2)
+        buzzer.frequency = TONE_FREQ[3]
+        await asynccp.delay(0.2)
+        buzzer.frequency = TONE_FREQ[0]
+        await asynccp.delay(0.2)
+        buzzer.frequency = TONE_FREQ[5]
+        await asynccp.delay(0.2)
+    buzzer.frequency = TONE_FREQ[7]
+    await asynccp.delay(0.4)
+    buzzer.frequency = TONE_FREQ[6]
+    await asynccp.delay(0.1)
+    buzzer.frequency = TONE_FREQ[5]
+    await asynccp.delay(0.1)
+    buzzer.frequency = TONE_FREQ[4]
+    await asynccp.delay(0.2)
+    buzz_off()
+
+# Jingle to let the user know that the board has at least gotten to the audio
+# setup. The GPIO, of course, is necessary to make this work.
+boot_jingle()
 
 # Turn on the internal blue LED
 feathers2.led_set(True)
@@ -222,7 +245,8 @@ mqtt_client.connect()
 mqtt_client.subscribe(mqtt_req_topic)
 mqtt_client.subscribe(mqtt_ack_topic)
 
-startup_jingle()
+# Jingle to let the user know the board is ready to go
+ready_jingle()
 
 # We're good to go
 print('''
@@ -257,13 +281,10 @@ class LMIApp:
             await asynccp.delay(0.1)
 
     async def check_req(self):
-        if s_stairs.value: # and buzzer.duty_cycle == 0:
+        if s_stairs.value and buzzer.duty_cycle == speaker_off:
             await south_stairs_jingle()
-            #print("dingus")
-            #buzzer.duty_cycle = speaker_on  
-            #buzzer.frequency = TONE_FREQ[7]
-            #await asynccp.delay(2)
-            #buzzer.duty_cycle = speaker_off
+        elif n_stairs.value and buzzer.duty_cycle == speaker_off:
+            await north_stairs_jingle()
 
     async def check_mqtt(self):
         mqtt_client.loop() # I guess we have to poll. Fuck this.
