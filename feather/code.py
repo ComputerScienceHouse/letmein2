@@ -8,10 +8,10 @@ import ssl
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 import ipaddress
 import adafruit_requests
-import pulseio
 import asynccp
 
 from secrets import secrets
+from buzzer import Buzzer
 
 # Make sure the 2nd LDO is turned on
 feathers2.enable_LDO2(True)
@@ -77,89 +77,93 @@ ack = digitalio.DigitalInOut(board.IO5)
 ack.direction = digitalio.Direction.INPUT
 
 # Sound lol
-# Define a list of tones/music notes to play.
-TONE_FREQ = [
-              262,  # C4    - 0
-              294,  # D4    - 1
-              330,  # E4    - 2
-              349,  # F4    - 3
-              392,  # G4    - 4
-              440,  # A4    - 5
-              494,  # B4    - 6
-              530  # C5(tm) - 7
-            ]
+buzz = Buzzer(board.IO6)
 
-# Create piezo buzzer PWM output.
-buzzer = pulseio.PWMOut(board.IO6, variable_frequency=True)
+buzz.boot()
 
-# Start at the first note and start making sound.
-
-# IDK where that 32768 number comes from. Probably a clock cycle or some shit.
-speaker_on = 2**15 # 32768 value is 50% duty cycle, a square wave.
-speaker_off = 0  # 0% duty cycle to stop the speaker
-
-def buzz_on():
-    buzzer.duty_cycle = speaker_on  
-
-def buzz_off():
-    buzzer.duty_cycle = speaker_off
-
-def ready_jingle():
-    buzz_on()
-    # Play tones going from start to end of list.
-    for i in range(len(TONE_FREQ)):
-        buzzer.frequency = TONE_FREQ[i]
-        time.sleep(0.1)  # Half second delay.
-    buzz_off() 
-
-async def boot_jingle():
-    buzzer.frequency = TONE_FREQ[0]
-    buzz_on()
-    await asynccp.delay(0.1)
-    buzzer.frequency = TONE_FREQ[3]
-    await asynccp.delay(0.2)
-    buzz_off()
-
-async def south_stairs_jingle():
-    buzz_on()
-    buzzer.frequency = TONE_FREQ[7]
-    await asynccp.delay(0.2)
-    buzzer.frequency = TONE_FREQ[3]
-    await asynccp.delay(1.0)
-    buzzer.frequency = TONE_FREQ[7]
-    await asynccp.delay(0.2)
-    buzzer.frequency = TONE_FREQ[3]
-    await asynccp.delay(0.2)
-    buzzer.frequency = TONE_FREQ[4]
-    await asynccp.delay(1.0)
-    buzzer.frequency = TONE_FREQ[7]
-    await asynccp.delay(2.0)
-    buzz_off()
-
-async def north_stairs_jingle():
-    buzz_on()
-    for x in range(0, 2):
-        buzzer.frequency = TONE_FREQ[0]
-        await asynccp.delay(0.2)
-        buzzer.frequency = TONE_FREQ[3]
-        await asynccp.delay(0.2)
-        buzzer.frequency = TONE_FREQ[0]
-        await asynccp.delay(0.2)
-        buzzer.frequency = TONE_FREQ[5]
-        await asynccp.delay(0.2)
-    buzzer.frequency = TONE_FREQ[7]
-    await asynccp.delay(0.4)
-    buzzer.frequency = TONE_FREQ[6]
-    await asynccp.delay(0.1)
-    buzzer.frequency = TONE_FREQ[5]
-    await asynccp.delay(0.1)
-    buzzer.frequency = TONE_FREQ[4]
-    await asynccp.delay(0.2)
-    buzz_off()
-
-# Jingle to let the user know that the board has at least gotten to the audio
-# setup. The GPIO, of course, is necessary to make this work.
-boot_jingle()
+# # Define a list of tones/music notes to play.
+# TONE_FREQ = [
+#               262,  # C4    - 0
+#               294,  # D4    - 1
+#               330,  # E4    - 2
+#               349,  # F4    - 3
+#               392,  # G4    - 4
+#               440,  # A4    - 5
+#               494,  # B4    - 6
+#               530  # C5(tm) - 7
+#             ]
+# 
+# # Create piezo buzzer PWM output.
+# buzzer = pulseio.PWMOut(board.IO6, variable_frequency=True)
+# 
+# 
+# # IDK where that 32768 number comes from. Probably a clock cycle or some shit.
+# speaker_on = 2**15 # 32768 value is 50% duty cycle, a square wave.
+# speaker_off = 0  # 0% duty cycle to stop the speaker
+# 
+# def buzz_on():
+#     buzzer.duty_cycle = speaker_on  
+# 
+# def buzz_off():
+#     buzzer.duty_cycle = speaker_off
+# 
+# def ready_jingle():
+#     buzz_on()
+#     # Play tones going from start to end of list.
+#     for i in range(len(TONE_FREQ)):
+#         buzzer.frequency = TONE_FREQ[i]
+#         time.sleep(0.1)  # Half second delay.
+#     buzz_off() 
+# 
+# async def boot_jingle():
+#     buzzer.frequency = TONE_FREQ[0]
+#     buzz_on()
+#     await asynccp.delay(0.1)
+#     buzzer.frequency = TONE_FREQ[3]
+#     await asynccp.delay(0.2)
+#     buzz_off()
+# 
+# async def south_stairs_jingle():
+#     buzz_on()
+#     buzzer.frequency = TONE_FREQ[7]
+#     await asynccp.delay(0.2)
+#     buzzer.frequency = TONE_FREQ[3]
+#     await asynccp.delay(1.0)
+#     buzzer.frequency = TONE_FREQ[7]
+#     await asynccp.delay(0.2)
+#     buzzer.frequency = TONE_FREQ[3]
+#     await asynccp.delay(0.2)
+#     buzzer.frequency = TONE_FREQ[4]
+#     await asynccp.delay(1.0)
+#     buzzer.frequency = TONE_FREQ[7]
+#     await asynccp.delay(2.0)
+#     buzz_off()
+# 
+# async def north_stairs_jingle():
+#     buzz_on()
+#     for x in range(0, 2):
+#         buzzer.frequency = TONE_FREQ[0]
+#         await asynccp.delay(0.2)
+#         buzzer.frequency = TONE_FREQ[3]
+#         await asynccp.delay(0.2)
+#         buzzer.frequency = TONE_FREQ[0]
+#         await asynccp.delay(0.2)
+#         buzzer.frequency = TONE_FREQ[5]
+#         await asynccp.delay(0.2)
+#     buzzer.frequency = TONE_FREQ[7]
+#     await asynccp.delay(0.4)
+#     buzzer.frequency = TONE_FREQ[6]
+#     await asynccp.delay(0.1)
+#     buzzer.frequency = TONE_FREQ[5]
+#     await asynccp.delay(0.1)
+#     buzzer.frequency = TONE_FREQ[4]
+#     await asynccp.delay(0.2)
+#     buzz_off()
+# 
+# 
+# # Jingle to let the user know that the board has at least gotten to the audio
+# # setup. The GPIO, of course, is necessary to make this work.
+# boot_jingle()
 
 # Turn on the internal blue LED
 feathers2.led_set(True)
