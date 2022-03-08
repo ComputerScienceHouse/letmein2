@@ -8,6 +8,7 @@ import ssl
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 import ipaddress
 import adafruit_requests
+import pulseio
 
 from secrets import secrets
 
@@ -74,7 +75,46 @@ l_well.direction = digitalio.Direction.OUTPUT
 ack = digitalio.DigitalInOut(board.IO5)
 ack.direction = digitalio.Direction.INPUT
 
-# TODO: Sound lol
+# Sound lol
+# Define a list of tones/music notes to play.
+TONE_FREQ = [ 262,  # C4
+              294,  # D4
+              330,  # E4
+              349,  # F4
+              392,  # G4
+              440,  # A4
+              494,  # B4
+              530   # C5(tm)] 
+
+# Create piezo buzzer PWM output.
+buzzer = pulseio.PWMOut(board.IO6, variable_frequency=True)
+
+# Start at the first note and start making sound.
+
+# IDK where that 32768 number comes from. Probably a clock cycle or some shit.
+speaker_on = 2**15 # 32768 value is 50% duty cycle, a square wave.
+speaker_off = 0  # 0% duty cycle to stop the speaker
+
+def buzz_on():
+    buzzer.duty_cycle = speaker_on  
+
+def buzz_off():
+    buzzer.duty_cycle = speaker_off
+
+def startup_jingle():
+    buzz_on()
+    # Play tones going from start to end of list.
+    for i in range(len(TONE_FREQ)):
+        buzzer.frequency = TONE_FREQ[i]
+        time.sleep(0.1)  # Half second delay.
+    buzz_off() 
+
+buzzer.frequency = TONE_FREQ[0]
+buzz_on()
+time.sleep(0.1)
+buzzer.frequency = TONE_FREQ[3]
+time.sleep(0.2)
+buzz_off()
 
 # Turn on the internal blue LED
 feathers2.led_set(True)
@@ -159,6 +199,8 @@ mqtt_client.connect()
 
 mqtt_client.subscribe(mqtt_req_topic)
 mqtt_client.subscribe(mqtt_ack_topic)
+
+startup_jingle()
 
 # We're good to go
 print('''
