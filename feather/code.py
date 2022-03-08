@@ -112,23 +112,23 @@ def startup_jingle():
         time.sleep(0.1)  # Half second delay.
     buzz_off() 
 
-def south_stairs_jingle():
+async def south_stairs_jingle():
     buzz_on()
     buzzer.frequency = TONE_FREQ[7]
-    time.sleep(0.2)
+    await asynccp.delay(0.2)
     buzzer.frequency = TONE_FREQ[3]
-    time.sleep(1.0)
+    await asynccp.delay(1.0)
 
     buzzer.frequency = TONE_FREQ[7]
-    time.sleep(0.2)
+    await asynccp.delay(0.2)
     buzzer.frequency = TONE_FREQ[3]
-    time.sleep(0.2)
+    await asynccp.delay(0.2)
 
     buzzer.frequency = TONE_FREQ[4]
-    time.sleep(1.0)
+    await asynccp.delay(1.0)
 
     buzzer.frequency = TONE_FREQ[7]
-    time.sleep(2.0)
+    await asynccp.delay(2.0)
     buzz_off()
 
 buzzer.frequency = TONE_FREQ[0]
@@ -241,52 +241,40 @@ print('''
 
 ''')
 
+class LMIApp:
+    def __init__(self):
+        pass
 
-class LMIClient:
-    #def __init__(self):
-
-    async def read_ack(self):
+    async def check_ack(self):
         if ack.value:
-            buzz_off()
+            buzz_off() # First and foremost, turn off the speaker. Shit's annoying.
             mqtt_client.publish(mqtt_ack_topic, f"{location}")
             s_stairs.value = 0
             n_stairs.value = 0
             level_a.value = 0
             level_1.value = 0
             l_well.value = 0
-            await asynccp.delay(1)
+            await asynccp.delay(0.1)
 
     async def check_req(self):
-        if s_stairs.value:
-            s_stairs.value = 1
-            south_stairs_jingle()
+        if s_stairs.value: # and buzzer.duty_cycle == 0:
+            await south_stairs_jingle()
+            #print("dingus")
+            #buzzer.duty_cycle = speaker_on  
+            #buzzer.frequency = TONE_FREQ[7]
+            #await asynccp.delay(2)
+            #buzzer.duty_cycle = speaker_off
 
-def main_loop():
+    async def check_mqtt(self):
+        mqtt_client.loop() # I guess we have to poll. Fuck this.
 
-    app = LMIClient()
-    mqtt_client.loop()
+def main():
+    app = LMIApp()
 
-    asynccp.schedule(frequency=80, coroutine_function=app.read_ack)
-    asynccp.schedule(frequency=10, coroutine_function=app.check_req)
+    asynccp.schedule(frequency=80, coroutine_function=app.check_ack)
+    asynccp.schedule(frequency=80, coroutine_function=app.check_req)
+    asynccp.schedule(frequency=80, coroutine_function=app.check_mqtt)
     asynccp.run()
 
-'''
-    # Main loop
-    while True:
-
-        # Checks for updates
-        mqtt_client.loop()
-
-        if s_stairs.value:
-            await south_stairs_jingle()
-
-        if ack.value:
-            mqtt_client.publish(mqtt_ack_topic, f"{location}")
-            s_stairs.value = 0
-            n_stairs.value = 0
-            level_a.value = 0
-            level_1.value = 0
-            l_well.value = 0
-'''
-
-main_loop()
+if __name__ == '__main__':
+    main()
