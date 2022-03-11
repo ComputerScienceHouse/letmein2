@@ -76,6 +76,7 @@ l_well.direction = digitalio.Direction.OUTPUT
 # Button for acking requests
 ack = digitalio.DigitalInOut(board.IO5)
 ack.direction = digitalio.Direction.INPUT
+ack.pull = digitalio.Pull.DOWN
 
 # Sound lol
 buzz = Buzzer(board.IO6)

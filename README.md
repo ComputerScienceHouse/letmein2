@@ -20,3 +20,19 @@ To run the container with mapped resources (for hacking), use this.
 
 To program the device:
 `cp Code/letmein2/feather/code.py /run/media/wilnil/CIRCUITPY/code.py`
+
+
+## Hardware
+
+You'll need:
+
+- 1x [Piezo Buzzer](https://www.digikey.com/en/products/detail/db-unlimited/TP134005-1/9990672)
+- 5x 680 ohm resistors for the LEDs (optional, if you need to dim them)
+- 5x Through-hole LEDs, any color, I used green. (Something like [this](https://www.digikey.com/en/products/detail/parallax-inc/751-00005/7791465))
+- 1x 10k ohm resistor for the button
+- 1x [E-Switch LS085R100F160C1A](https://www.digikey.com/en/products/detail/e-switch/LS085R100F160C1A/1628106)
+    - _Honestly, if I had to do this again, I'd probably buy_ [these](https://www.adafruit.com/product/3489) _next time_
+- 1x [Tiny S2](https://www.adafruit.com/product/5029) as the BRAIN
+
+
+Connect the button switch to COM and NO so that when the switch is closed, the circuit is completed and the button press is registered.
