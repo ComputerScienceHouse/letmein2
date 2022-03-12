@@ -27,12 +27,21 @@ To program the device:
 You'll need:
 
 - 1x [Piezo Buzzer](https://www.digikey.com/en/products/detail/db-unlimited/TP134005-1/9990672)
-- 5x 680 ohm resistors for the LEDs (optional, if you need to dim them)
 - 5x Through-hole LEDs, any color, I used green. (Something like [this](https://www.digikey.com/en/products/detail/parallax-inc/751-00005/7791465))
 - 1x 10k ohm resistor for the button
 - 1x [E-Switch LS085R100F160C1A](https://www.digikey.com/en/products/detail/e-switch/LS085R100F160C1A/1628106)
     - _Honestly, if I had to do this again, I'd probably buy_ [these](https://www.adafruit.com/product/3489) _next time_
-- 1x [Tiny S2](https://www.adafruit.com/product/5029) as the BRAIN
+- 1x [Tiny S2](https://www.adafruit.com/product/5029) as the brain
+- 7x [Male MTA-100 Connectors](https://www.digikey.com/en/products/detail/te-connectivity-amp-connectors/3-640441-2/698221)
+- 7x [Female MTA-100 Connectors](https://www.digikey.com/en/products/detail/te-connectivity-amp-connectors/640456-2/109003)
+- 1x Pushbutton (like, one of those [smol bois](https://www.digikey.com/en/products/detail/sparkfun-electronics/PRT-14460/7915747))
+
+Optional:
+- 5x 680 ohm resistors for the LEDs (if you need to dim them)
+
+If you'd like to socket your TinyS2, use these:
+- 1x [11 Position Header](https://www.digikey.com/en/products/detail/sullins-connector-solutions/PPTC111LFBN-RC/810150?s=N4IgTCBcDaIApwCoGECM6AyAxAQgOQFoAlZEAXQF8g)
+- 1x [12 Position Header](https://www.digikey.com/en/products/detail/sullins-connector-solutions/PPTC121LFBN-RC/807231)
 
 
 Connect the button switch to COM and NO so that when the switch is closed, the circuit is completed and the button press is registered.
