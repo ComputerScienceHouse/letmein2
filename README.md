@@ -26,16 +26,18 @@ To program the device:
 
 You'll need:
 
-- 1x [Piezo Buzzer](https://www.digikey.com/en/products/detail/db-unlimited/TP134005-1/9990672)
 - 5x Through-hole LEDs, any color, I used green. (Something like [this](https://www.digikey.com/en/products/detail/parallax-inc/751-00005/7791465))
-- 1x 10k ohm resistor for the button
 - 1x [E-Switch LS085R100F160C1A](https://www.digikey.com/en/products/detail/e-switch/LS085R100F160C1A/1628106)
     - _Honestly, if I had to do this again, I'd probably buy_ [these](https://www.adafruit.com/product/3489) _next time_
 - 1x [Tiny S2](https://www.adafruit.com/product/5029) as the brain
-- 7x [Male MTA-100 Connectors](https://www.digikey.com/en/products/detail/te-connectivity-amp-connectors/3-640441-2/698221)
-- 7x [Female MTA-100 Connectors](https://www.digikey.com/en/products/detail/te-connectivity-amp-connectors/640456-2/109003)
 - 1x Pushbutton (like, one of those [smol bois](https://www.digikey.com/en/products/detail/sparkfun-electronics/PRT-14460/7915747))
+- 1x [Piezo Buzzer](https://www.digikey.com/en/products/detail/db-unlimited/TP134005-1/9990672)
+- 1x [Tiny S2](https://www.digikey.com/en/products/detail/adafruit-industries-llc/5029/14307381?s=N4IgTCBcDaICoEsB2BPAyhAugXyA)
 
+For the LED connectors:
+- 1x [10 Position Header](https://www.digikey.com/en/products/detail/sullins-connector-solutions/LPPB101NFFN-RC/1786368)
+- 1x [10 Position Header (male)](https://www.digikey.com/en/products/detail/sullins-connector-solutions/GRPB101VWVN-RC/1786446)
+- 
 Optional:
 - 5x 680 ohm resistors for the LEDs (if you need to dim them)
 
