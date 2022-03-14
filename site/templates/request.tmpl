@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="/static/script.js"></script>
+</head>
+<body>
+    <h1 id="notification_header">
+        Requesting access at: {{ .location }}
+    </h1>
+    <h2 id="home_link" hidden><a href="/">Return to home</a></h2>
+    <h2 id="cancel_link"><a href="/nvm">Click here to cancel</a></h2>
+</body>
+<script>
+    request_ack();
+</script>
+</html>
