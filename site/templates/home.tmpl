@@ -2,6 +2,8 @@
 <html>
 <head>
     <script src="/static/home.js"></script>
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LfWXtoeAAAAAB36u5SToB1YuhCHm6mJYxUUI4Bj"></script>
+    
 </head>
 <body>
     <h1>
@@ -13,11 +15,26 @@
     </h2>
     <ul id="locationList">
         {{ range $key, $value := .location_map }}
-        <li><button id="{{ $key }}">{{ $value }}</button></li>
+        <li>
+            <form method="POST" action="/request" id="letmein::{{ $key }}">
+                <input type="hidden" name="recaptcha" id="recaptcha">
+                <input type="hidden" name="location" id="location::{{ $key }}" value={{ $key }}>
+                <button type="submit">{{ $value }}</button>
+            </form>
+        </li>
         {{ end }}
     </ul>
-</body>
 <script>
-    homePageSetup();
+    grecaptcha.enterprise.ready(function() {
+        grecaptcha.enterprise.execute('6LfWXtoeAAAAAB36u5SToB1YuhCHm6mJYxUUI4Bj', {action: 'auth'}).then(function (token) {
+            console.log(token);
+            var recaptchaElements = document.getElementsByName('recaptcha');
+            for (var i = 0; i < recaptchaElements.length; i++) {
+                recaptchaElements[i].value = token;
+            }
+        });
+    });
 </script>
+</body>
 </html>
+
