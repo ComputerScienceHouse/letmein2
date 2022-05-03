@@ -24,14 +24,13 @@ To program the device:
 ## Libs
 You'll need the following to get the board to run
 
-```
-- adafruit_minimqtt
-- adafruit_requests
-- adafruit_ticks
-- asynccp
-- asyncio
-- simpleio
-```
+
+- `adafruit_minimqtt`
+- `adafruit_requests`
+- `adafruit_ticks`
+- `asynccp`
+- `asyncio`
+- `simpleio`
 
 ## Hardware
 
@@ -48,7 +47,8 @@ You'll need:
 For the LED connectors:
 - 1x [10 Position Header](https://www.digikey.com/en/products/detail/sullins-connector-solutions/LPPB101NFFN-RC/1786368)
 - 1x [10 Position Header (male)](https://www.digikey.com/en/products/detail/sullins-connector-solutions/GRPB101VWVN-RC/1786446)
-- 
+
+
 Optional:
 - 5x 680 ohm resistors for the LEDs (if you need to dim them)
 
