@@ -21,6 +21,17 @@ To run the container with mapped resources (for hacking), use this.
 To program the device:
 `cp Code/letmein2/feather/code.py /run/media/wilnil/CIRCUITPY/code.py`
 
+## Libs
+You'll need the following to get the board to run
+
+```
+- adafruit_minimqtt
+- adafruit_requests
+- adafruit_ticks
+- asynccp
+- asyncio
+- simpleio
+```
 
 ## Hardware
 
