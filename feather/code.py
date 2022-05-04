@@ -1,6 +1,6 @@
 import time, gc, os
 import board
-import feathers2
+import tinys2
 import digitalio
 import wifi
 import socketpool
@@ -15,7 +15,7 @@ from buzzer import Buzzer
 from jingles import *
 
 # Make sure the 2nd LDO is turned on
-feathers2.enable_LDO2(True)
+#tinys2.enable_LDO2(True)
 
 # Say hello
 print('''
@@ -59,13 +59,11 @@ if location == '':
     exit(1)
 
 # Set up gpio
-
-# LEDs to indicate request location
-level_a = digitalio.DigitalInOut(board.IO1)
-level_1 = digitalio.DigitalInOut(board.IO3)
-n_stairs = digitalio.DigitalInOut(board.IO7)
-s_stairs = digitalio.DigitalInOut(board.IO10)
-l_well = digitalio.DigitalInOut(board.IO11)
+s_stairs = digitalio.DigitalInOut(board.IO0)
+n_stairs = digitalio.DigitalInOut(board.IO18)
+level_a = digitalio.DigitalInOut(board.IO17)
+level_1 = digitalio.DigitalInOut(board.IO7)
+l_well = digitalio.DigitalInOut(board.IO6)
 
 s_stairs.direction = digitalio.Direction.OUTPUT
 level_1.direction = digitalio.Direction.OUTPUT
@@ -74,19 +72,16 @@ n_stairs.direction = digitalio.Direction.OUTPUT
 l_well.direction = digitalio.Direction.OUTPUT
 
 # Button for acking requests
-ack = digitalio.DigitalInOut(board.IO5)
+ack = digitalio.DigitalInOut(board.IO33)
 ack.direction = digitalio.Direction.INPUT
 ack.pull = digitalio.Pull.DOWN
 
 # Sound lol
-buzz = Buzzer(board.IO6)
+buzz = Buzzer(board.IO4)
 
 # Play a little boot jingle to let the user know that the board has at least gotten to the audio
 # setup. The GPIO, of course, is necessary to make this work.
 buzz.boot()
-
-# Turn on the internal blue LED
-feathers2.led_set(True)
 
 # Connect to wifi
 print(f'Connecting to {secrets["ssid"]}')
