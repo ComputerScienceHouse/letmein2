@@ -14,9 +14,6 @@ from secrets import secrets
 from buzzer import Buzzer
 from jingles import *
 
-# Make sure the 2nd LDO is turned on
-#tinys2.enable_LDO2(True)
-
 # Say hello
 print('''
     '{tttttttttttttttttttttttt^ *tttt
