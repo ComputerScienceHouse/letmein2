@@ -37,6 +37,13 @@ var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Me
 			}
 		}
 		req_channels = nil
+	} else if msg.Topic() == "letmein2/ack" && string(msg.Payload()) == "timeout" { // uhh cheeseburger
+		for _, c := range req_channels {
+			if c != nil {
+				c <- false
+			}
+		}
+		req_channels = nil
 	}
 }
 
@@ -127,16 +134,18 @@ func main() {
        This is kinda cringe
 	*/
 	r.POST("/anybody_home", func(c *gin.Context) {
+		request_timeout_period := 10       // TODO: Use an environment variable, you dingus!
+
 		ch := make(chan bool)
 		channel_index := len(req_channels) // index of next channel added will be the old length
-		request_timeout_period := 30       // TODO: Use an environment variable, you dingus!
 		req_channels = append(req_channels, ch)
 		select {
 		case acked := <-ch:
 			if acked {
 				c.String(200, "acked")
 			} else {
-				c.String(401, "wtf") // This shouldn't happen lol
+				//c.String(401, "wtf") // This shouldn't happen lol
+				c.String(408, "timeout")
 			}
 		case <-time.After(time.Second * time.Duration(request_timeout_period)):
 			// Remove a timed out channel from the channel slice, as to not crash the server :)
