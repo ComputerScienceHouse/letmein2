@@ -13,6 +13,7 @@ import asynccp
 from secrets import secrets
 from buzzer import Buzzer
 from jingles import *
+from LMIApp import LMIApp
 
 # Say hello
 print('''
@@ -55,7 +56,7 @@ if location == '':
     print('Location not set! Please set location.')
     exit(1)
 
-# Set up gpio
+# ===== GPIO =====
 s_stairs = digitalio.DigitalInOut(board.IO0)
 n_stairs = digitalio.DigitalInOut(board.IO18)
 level_a = digitalio.DigitalInOut(board.IO17)
@@ -73,24 +74,21 @@ ack = digitalio.DigitalInOut(board.IO33)
 ack.direction = digitalio.Direction.INPUT
 ack.pull = digitalio.Pull.DOWN
 
-# Sound lol
+# Play a little boot jingle to indicate startup
 buzz = Buzzer(board.IO4)
-
-# Play a little boot jingle to let the user know that the board has at least gotten to the audio
-# setup. The GPIO, of course, is necessary to make this work.
 buzz.boot()
 
-# Connect to wifi
+# ===== WIFI =====
 print(f'Connecting to {secrets["ssid"]}')
 print('mac address:', "%02x:%02x:%02x:%02x:%02x:%02x" % tuple(map(int, wifi.radio.mac_address)))
 wifi.radio.connect(secrets['ssid'], secrets['password'])
 print(f'Connected to {secrets["ssid"]}!')
 
-# Topic Setup
+# MQTT topics
 mqtt_req_topic = "letmein2/req"
 mqtt_ack_topic = "letmein2/ack"
 
-# Define callback methods which are called when events occur
+# MQTT callbacks
 # pylint: disable=unused-argument, redefined-outer-name
 def connect(mqtt_client, userdata, flags, rc):
     # This function will be called when the mqtt_client is connected
@@ -139,7 +137,7 @@ def message(client, topic, message):
 # Create a socket pool
 pool = socketpool.SocketPool(wifi.radio)
 
-# Set up a MiniMQTT Client
+# Set up MQTT Client
 mqtt_client = MQTT.MQTT(
     broker=secrets["broker"],
     port=secrets["port"],
@@ -180,42 +178,6 @@ print('''
                                              \______/
 
 ''')
-
-class LMIApp:
-    def __init__(self):
-        pass
-
-    async def check_ack(self):
-        if ack.value:
-            buzz.off() # First and foremost, turn off the speaker. Shit's annoying.
-            mqtt_client.publish(mqtt_ack_topic, f"{location}")
-            s_stairs.value = 0
-            n_stairs.value = 0
-            level_a.value = 0
-            level_1.value = 0
-            l_well.value = 0
-            await asynccp.delay(0.1)
-
-    async def check_req(self):
-        if s_stairs.value and buzz.is_off():
-            await south_stairs_jingle(buzz)
-        elif n_stairs.value and buzz.is_off():
-            await north_stairs_jingle(buzz)
-        elif level_a.value and buzz.is_off():
-            buzz.on()
-            for i in range(0, 3):
-                buzz.hz(659)
-                await asynccp.delay(0.1)
-                buzz.hz(587)
-                await asynccp.delay(0.1)
-            buzz.note("C4")
-            await asynccp.delay(0.3)
-            buzz.note("D4")
-            await asynccp.delay(0.5)
-            buzz.off()
-
-    async def check_mqtt(self):
-        mqtt_client.loop() # I guess we have to poll. Fuck this.
 
 def main():
     app = LMIApp()
