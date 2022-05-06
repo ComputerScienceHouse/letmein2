@@ -1,11 +1,15 @@
 package main
 
 import (
+    "context"
 	"fmt"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
+
+    recaptcha "cloud.google.com/go/recaptchaenterprise/apiv1"
+    recaptchapb "google.golang.org/genproto/googleapis/cloud/recaptchaenterprise/v1"
 )
 
 // Slice of channels used to keep track of active letmein requests
@@ -54,6 +58,70 @@ func sub(client mqtt.Client, topic string) {
 	fmt.Printf("Subscribed to topic %s", topic)
 }
 
+/**
+* Create an assessment to analyze the risk of an UI action.
+*
+* @param projectID: GCloud Project ID
+* @param recaptchaSiteKey: Site key obtained by registering a domain/app to use recaptcha services.
+* @param token: The token obtained from the client on passing the recaptchaSiteKey.
+* @param recaptchaAction: Action name corresponding to the token.
+*/
+func createAssessment(projectID string, recaptchaSiteKey string, actionToken string, recaptchaAction string) bool {
+
+	// Create the recaptcha client.
+	// TODO: To avoid memory issues, move this client generation outside
+	// of this example, and cache it (recommended) or call client.close()
+	// before exiting this method.
+	ctx := context.Background()
+	client, err := recaptcha.NewClient(ctx)
+	if err != nil {
+		fmt.Printf("Error creating reCAPTCHA client:%s\n", err)
+		return false
+	}
+	defer client.Close()
+
+	// Set the properties of the event to be tracked.
+	event := &recaptchapb.Event{
+		Token:          actionToken,
+		SiteKey:        recaptchaSiteKey,
+	}
+
+	assessment := &recaptchapb.Assessment{
+		Event: event,
+	}
+
+	// Build the assessment request.
+	request := &recaptchapb.CreateAssessmentRequest{
+		Assessment: assessment,
+		Parent:     fmt.Sprintf("projects/%s", projectID),
+	}
+
+	response, err := client.CreateAssessment(
+		ctx,
+		request)
+
+	if err != nil {
+		fmt.Printf("%v", err.Error())
+		return false
+	}
+	// Check if the token is valid.
+	if !response.TokenProperties.Valid {
+		fmt.Printf("The CreateAssessment() call failed because the token"+
+			" was invalid for the following reasons: %v",
+		response.TokenProperties.InvalidReason)
+		return false
+	}
+
+	// Check if the expected action was executed.
+	if response.TokenProperties.Action == recaptchaAction {
+		return response.RiskAnalysis.Score >= 0.5
+	}
+
+	fmt.Printf("The action attribute in your reCAPTCHA tag does " +
+		"not match the action you are expecting to score")
+	return false
+}
+
 func main() {
 	// MQTT setup (and a lot of it)
 	var broker = "mqtt.csh.rit.edu"
@@ -65,6 +133,11 @@ func main() {
 	opts.OnConnect = connectHandler
 	opts.OnConnectionLost = connectLostHandler
 	client := mqtt.NewClient(opts)
+
+    projectID := "coral-antonym-327500"
+    recaptchaSiteKey := "6LfWXtoeAAAAAB36u5SToB1YuhCHm6mJYxUUI4Bj"
+    recaptchaAction := "auth"
+
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
@@ -89,27 +162,25 @@ func main() {
 	})
 
     // Request to publish to MQTT
-	r.POST("/request/:location", func(c *gin.Context) {
-        _, exists := location_map[c.Param("location")]
+	r.POST("/request", func(c *gin.Context) {
+        recaptcha := string(c.PostForm("recaptcha"));
+		if !createAssessment(projectID, recaptchaSiteKey, recaptcha, recaptchaAction) {
+			c.String(401, "Invalid Recaptcha");
+			return
+		}
+		
+		location := string(c.PostForm("location"))
+        _, exists := location_map[location]
         if exists {
-            token := client.Publish("letmein2/req", 0, false, c.Param("location"))
+            token := client.Publish("letmein2/req", 0, false, location)
 	    	token.Wait()
-        } else {
-            c.String(404, "Unknown Location.");
-        }
-	})
-    
-    // Request to load the waiting screen 
-    r.GET("/request/:location", func(c *gin.Context) {
-        _, exists := location_map[c.Param("location")]
-        if exists {
-            c.HTML(200, "request.tmpl", gin.H{
-                "location": location_map[c.Param("location")],
+			c.HTML(200, "request.tmpl", gin.H{
+                "location": location_map[location],
             })
         } else {
             c.String(404, "Unknown Location.");
         }
-    })
+	})
 
     // For canceling requests
 	r.GET("/nvm", func(c *gin.Context) {
