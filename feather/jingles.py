@@ -1,9 +1,8 @@
 import pulseio
 import asynccp
 import time
-from buzzer import Buzzer
 
-def ready_jingle(buzz):
+def jingle_ready(buzz):
     buzz.on()
     buzz.note("C4")
     time.sleep(0.1)
@@ -23,7 +22,7 @@ def ready_jingle(buzz):
     time.sleep(0.2)
     buzz.off()
 
-async def south_stairs_jingle(buzz):
+async def jingle_s_stairs(buzz):
     buzz.on()
     buzz.note("C5")
     await asynccp.delay(0.2)
@@ -39,7 +38,7 @@ async def south_stairs_jingle(buzz):
     await asynccp.delay(2.0)
     buzz.off()
 
-async def north_stairs_jingle(buzz):
+async def jingle_n_stairs(buzz):
     buzz.on()
     for x in range(0, 2):
         buzz.note("C4")
@@ -60,4 +59,17 @@ async def north_stairs_jingle(buzz):
     await asynccp.delay(0.1)
     buzz.note("F4")
     await asynccp.delay(0.2)
+    buzz.off()
+
+async def jingle_level_a(buzz):
+    buzz.on()
+    for i in range(0, 3):
+        buzz.hz(659)
+        await asynccp.delay(0.1)
+        buzz.hz(587)
+        await asynccp.delay(0.1)
+    buzz.note("C4")
+    await asynccp.delay(0.3)
+    buzz.note("D4")
+    await asynccp.delay(0.5)
     buzz.off()

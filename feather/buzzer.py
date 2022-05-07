@@ -2,6 +2,8 @@ import pulseio
 import asynccp
 import time
 
+from jingles import *
+
 class Buzzer:
     # IDK where that 32768 number comes from. Probably a clock cycle or some shit.
     speaker_on = 2**15 # 32768 value is 50% duty cycle, a square wave.
