@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"time"
 
@@ -48,7 +49,7 @@ var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Me
 }
 
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
-	fmt.Println("Connected\n")
+	fmt.Println("Connected to MQTT server\n")
 }
 
 var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
@@ -63,7 +64,7 @@ func sub(client mqtt.Client, topic string) {
 
 func main() {
 	// MQTT setup (and a lot of it)
-	var broker = "mqtt.csh.rit.edu"
+	var broker = os.Getenv("LMI_BROKER")
 	var port = 1883
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, port))
@@ -83,8 +84,17 @@ func main() {
 	// Gin Setup
 	r := gin.Default()
 	r.SetTrustedProxies([]string{"0.0.0.0"})
-	r.LoadHTMLGlob("/templates/*")
-	r.Static("/static", "/static")
+	fmt.Println(os.Getenv("LMI_TEMPLATES"))
+	fmt.Println(os.Getenv("LMI_STATIC"))
+
+	r.LoadHTMLGlob(os.Getenv("LMI_TEMPLATES"))
+	r.Static(os.Getenv("LMI_STATIC"), "/static")
+
+	// r.LoadHTMLGlob("/home/wilnil/Code/letmein2/site/templates/*")
+	// r.Static("/home/wilnil/Code/letmein2/site/static", "/static")
+
+	// r.LoadHTMLGlob("/templates/*")
+	// r.Static("/static", "/static")
 
 	// Route definitions
 
