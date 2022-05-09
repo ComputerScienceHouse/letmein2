@@ -4,6 +4,7 @@ import (
 	"os"
 	"fmt"
 	"time"
+	"strconv"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
@@ -65,7 +66,8 @@ func sub(client mqtt.Client, topic string) {
 func main() {
 	// MQTT setup (and a lot of it)
 	var broker = os.Getenv("LMI_BROKER")
-	var port = 1883
+	var port = strconv.Atoi(os.Getenv("LMI_BROKER_PORT"))
+	fmt.Println("broker ",broker," port ",port)
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, port))
 	opts.SetClientID("go_mqtt_client")
@@ -88,15 +90,9 @@ func main() {
 	fmt.Println(os.Getenv("LMI_STATIC"))
 
 	r.LoadHTMLGlob(os.Getenv("LMI_TEMPLATES"))
-	r.Static(os.Getenv("LMI_STATIC"), "/static")
+	r.Static("/static", os.Getenv("LMI_STATIC"))
 
-	// r.LoadHTMLGlob("/home/wilnil/Code/letmein2/site/templates/*")
-	// r.Static("/home/wilnil/Code/letmein2/site/static", "/static")
-
-	// r.LoadHTMLGlob("/templates/*")
-	// r.Static("/static", "/static")
-
-	// Route definitions
+	// ===== Route definitions =====
 
     // Homepage
 	r.GET("/", func(c *gin.Context) {
