@@ -1,26 +1,12 @@
 import time, gc, os, board, tinys2, digitalio, wifi, socketpool, ssl, adafruit_minimqtt.adafruit_minimqtt as MQTT, ipaddress, adafruit_requests, asynccp
-
 from secrets import *
 from gpio import *
 from jingles import Jingle
 from art import *
-# from buzzer import Buzzer
 from LMIApp import LMIApp
 
 art_logo()
-
-# Show available memory
-print('Memory Info - gc.mem_free()')
-print('---------------------------')
-print(f'{gc.mem_free()} Bytes\n')
-
-# Show flash size
-flash = os.statvfs('/')
-flash_size = flash[0] * flash[2]
-flash_free = flash[0] * flash[3]
-print("Flash - os.statvfs('/')")
-print('---------------------------')
-print(f"Size: {flash_size} Bytes\nFree: {flash_free} Bytes\n")
+art_mem_info()
 
 def main():
     # Set location of this device
@@ -28,11 +14,6 @@ def main():
     if location == '':
         print('Location not set! Please set location.')
         exit(1)
-
-    # Button for acking requests
-    ack = digitalio.DigitalInOut(board.IO33)
-    ack.direction = digitalio.Direction.INPUT
-    ack.pull = digitalio.Pull.DOWN
 
     # Play a little boot jingle to indicate startup
     buzz = Jingle(board.IO4)
@@ -55,9 +36,9 @@ def main():
         ssl_context=ssl.create_default_context(),
     )
 
-    app = LMIApp(buzz, ack, mqtt_client)
+    app = LMIApp(buzz, mqtt_client)
 
-    # Connect callback handlers to mqtt_client
+    # Connect callback handlers to mqtt_client. Mostly for debugging.
     # mqtt_client.on_connect = connect
     # mqtt_client.on_disconnect = disconnect
     # mqtt_client.on_subscribe = subscribe
@@ -70,9 +51,12 @@ def main():
     mqtt_client.subscribe(mqtt_req_topic)
     mqtt_client.subscribe(mqtt_ack_topic)
 
-    asynccp.schedule(frequency=80, coroutine_function=app.check_ack)
+    asynccp.schedule(frequency=10, coroutine_function=app.check_ack)
     asynccp.schedule(frequency=10, coroutine_function=app.check_req)
-    asynccp.schedule(frequency=80, coroutine_function=app.check_mqtt)
+    asynccp.schedule(frequency=10, coroutine_function=app.check_mqtt)
+    asynccp.schedule(frequency=10, coroutine_function=app.check_stfu)
+    asynccp.schedule(frequency=1, coroutine_function=app.stfu_decay)
+
 
     # Jingle + ASCII art to let the user know the board is ready to go
     art_ready()
@@ -80,7 +64,7 @@ def main():
 
     asynccp.run()
 
-# MQTT callbacks (Mostly for debugging. message() is the only one that actually matters.)
+# MQTT callbacks (Mostly for debugging)
 '''
 # pylint: disable=unused-argument, redefined-outer-name
 def connect(mqtt_client, userdata, flags, rc):
@@ -121,12 +105,12 @@ def message(client, topic, message):
             n_stairs.value = 1
         elif message == "l_well":
             l_well.value = 1
-    elif topic == mqtt_ack_topic:
+    elif topic == mqtt_ack_topic: # Eww, this is cringe. The MQTT client is still subbed so it gets messages and turns on the lights, but then it just turns right back off. Should fix this. IDEA: Sub/Unsub.
         level_a.value = 0
         level_1.value = 0
         s_stairs.value = 0
         n_stairs.value = 0
-        l_well.value = 0    
+        l_well.value = 0
 
 if __name__ == '__main__':
     main()
