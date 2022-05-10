@@ -47,14 +47,5 @@ class Buzzer:
     def hz(self, hz):
         self.buzzer.frequency = hz
 
-    def boot(self):
-        self.on()
-        self.note("C4")
-        time.sleep(0.1)
-        self.note("F4")
-        time.sleep(0.2)
-        self.off()
-
-
     async def play(self, sequence):
         pass #TODO (willnilges): Implement some cool way to play jingles

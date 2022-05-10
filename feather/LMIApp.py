@@ -21,11 +21,11 @@ class LMIApp:
 
     async def check_req(self):
         if s_stairs.value and self.buzz.is_off():
-            await jingle_s_stairs(self.buzz)
+            await self.buzz.jingle_s_stairs()
         elif n_stairs.value and self.buzz.is_off():
-            await jingle_n_stairs(self.buzz)
+            await self.buzz.jingle_n_stairs()
         elif level_a.value and self.buzz.is_off():
-            await jingle_level_a(self.buzz)
+            await self.buzz.jingle_level_a()
 
     async def check_mqtt(self):
         self.mqtt_client.loop() # I guess we have to poll. Fuck this.

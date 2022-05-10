@@ -2,9 +2,9 @@ import time, gc, os, board, tinys2, digitalio, wifi, socketpool, ssl, adafruit_m
 
 from secrets import *
 from gpio import *
-from jingles import *
+from jingles import Jingle
 from art import *
-from buzzer import Buzzer
+# from buzzer import Buzzer
 from LMIApp import LMIApp
 
 art_logo()
@@ -29,27 +29,14 @@ def main():
         print('Location not set! Please set location.')
         exit(1)
 
-    # ===== GPIO =====
-    # s_stairs = digitalio.DigitalInOut(board.IO0)
-    # n_stairs = digitalio.DigitalInOut(board.IO18)
-    # level_a = digitalio.DigitalInOut(board.IO17)
-    # level_1 = digitalio.DigitalInOut(board.IO7)
-    # l_well = digitalio.DigitalInOut(board.IO6)
-
-    # s_stairs.direction = digitalio.Direction.OUTPUT
-    # level_1.direction = digitalio.Direction.OUTPUT
-    # level_a.direction = digitalio.Direction.OUTPUT
-    # n_stairs.direction = digitalio.Direction.OUTPUT
-    # l_well.direction = digitalio.Direction.OUTPUT
-
     # Button for acking requests
     ack = digitalio.DigitalInOut(board.IO33)
     ack.direction = digitalio.Direction.INPUT
     ack.pull = digitalio.Pull.DOWN
 
     # Play a little boot jingle to indicate startup
-    buzz = Buzzer(board.IO4)
-    buzz.boot()
+    buzz = Jingle(board.IO4)
+    buzz.jingle_boot()
 
     # ===== WIFI =====
     print(f'Connecting to {secrets["ssid"]}')
@@ -89,7 +76,7 @@ def main():
 
     # Jingle + ASCII art to let the user know the board is ready to go
     art_ready()
-    jingle_ready(buzz)
+    buzz.jingle_ready()
 
     asynccp.run()
 
