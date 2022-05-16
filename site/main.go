@@ -66,7 +66,7 @@ func sub(client mqtt.Client, topic string) {
 func main() {
 	// MQTT setup (and a lot of it)
 	var broker = os.Getenv("LMI_BROKER")
-	var port = strconv.Atoi(os.Getenv("LMI_BROKER_PORT"))
+	var port, _ = strconv.Atoi(os.Getenv("LMI_BROKER_PORT"))
 	fmt.Println("broker ",broker," port ",port)
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, port))
@@ -96,7 +96,7 @@ func main() {
 
     // Homepage
 	r.GET("/", func(c *gin.Context) {
-		c.HTML(200, "home.tmpl", gin.H{
+		c.HTML(200, "home.html", gin.H{
             "location_map" : location_map,
         })
 	})
@@ -116,7 +116,7 @@ func main() {
     r.GET("/request/:location", func(c *gin.Context) {
         _, exists := location_map[c.Param("location")]
         if exists {
-            c.HTML(200, "request.tmpl", gin.H{
+            c.HTML(200, "request.html", gin.H{
                 "location": location_map[c.Param("location")],
             })
         } else {
