@@ -3,8 +3,8 @@
 <head>
     <!--<link rel="stylesheet" href="https://themeswitcher.csh.rit.edu/api/get" media="screen">-->
     <link rel="stylesheet" href="https://s3.csh.rit.edu/csh-material-bootstrap/4.3.1/dist/csh-material-bootstrap.min.css" media="screen">
-    <script src="/static/home.js"></script>
     <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <script src="/static/home.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -18,8 +18,26 @@
         <li class="nav-item active">
             <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
         </li>
+        
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="download" aria-expanded="false">Locations <span class="caret"></span></a>
+            <div class="dropdown-menu" aria-labelledby="download">
+                {{ range $key, $value := .location_map }}
+                    <a id="{{ $key }}" href="/request/{{ $key }}" class="dropdown-item">{{ $value }}</a>
+                {{ end }}
+                <!-- <a class="dropdown-item" href="dist/csh-material-bootstrap.min.css">csh-material-bootstrap.min.css</a>
+                <a class="dropdown-item" href="dist/csh-material-bootstrap.css">csh-material-bootstrap.css</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="src/_variables.scss">_variables.scss</a>
+                <a class="dropdown-item" href="src/csh-material-bootstrap.scss">csh-material-bootstrap.scss</a> -->
+            </div>
+          </li>
+
         <li class="nav-item">
-            <a class="nav-link" href="#">Locations</a>
+            <a class="nav-link" href="#">What is this?</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="https://github.com/willnilges/letmein2">Source Code</a>
         </li>
         </ul>
     </div>
