@@ -25,11 +25,6 @@
                 {{ range $key, $value := .location_map }}
                     <a id="{{ $key }}" href="/request/{{ $key }}" class="dropdown-item">{{ $value }}</a>
                 {{ end }}
-                <!-- <a class="dropdown-item" href="dist/csh-material-bootstrap.min.css">csh-material-bootstrap.min.css</a>
-                <a class="dropdown-item" href="dist/csh-material-bootstrap.css">csh-material-bootstrap.css</a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="src/_variables.scss">_variables.scss</a>
-                <a class="dropdown-item" href="src/csh-material-bootstrap.scss">csh-material-bootstrap.scss</a> -->
             </div>
           </li>
 
@@ -42,6 +37,7 @@
         </ul>
     </div>
     </nav>
+    
     <div class="header">
         Welcome to Computer Science House <!--TODO: Environment Variable-->
     </div>
@@ -54,6 +50,33 @@
         <button id="{{ $key }}" class="btn btn-outline-primary beeg">{{ $value }}</button>
         {{ end }}
     </div>
+
+    <div id="request_modal" class="modal">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header" id="request_modal_header">
+
+            <div class="alert alert-dismissible alert-danger" id="alert_timeout" style="display: none;">
+                <!-- <button type="button" class="close" data-dismiss="alert">&times;</button> -->
+                <strong>Timed out.</strong>
+            </div>
+              <h5 class="modal-title" id="request_modal_title">Requesting access at: {{ .location }}</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>A timer should go here...</p>
+            </div>
+            <div class="modal-footer">
+              <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+              <button id="request_modal_cancel_button" type="button" class="btn btn-danger" data-dismiss="modal" onclick="nevermind();">Cancel</button>
+              <button id="request_modal_home_button" type="button" class="btn btn-primary" data-dismiss="modal" onclick="closeRequestModal();">Return Home</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>

@@ -24,8 +24,8 @@ var location_map = map[string]string{
 // TODO: Structured logging into Datadog?
 // Handle messages from subscribed topics
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
-
+	fmt.Printf("Received message \"%s\" from topic \"%s\"\n", msg.Payload(), msg.Topic())
+	
 	/*
 	   If we receive an ack message that isn't a timeout, then set each active
 	   channel to 'true' (that'll cause the webpage the client is looking at to
@@ -107,22 +107,25 @@ func main() {
         if exists {
             token := client.Publish("letmein2/req", 0, false, c.Param("location"))
 	    	token.Wait()
+			c.String(200, location_map[c.Param("location")])
         } else {
             c.String(404, "Unknown Location.");
         }
 	})
     
     // Request to load the waiting screen 
-    r.GET("/request/:location", func(c *gin.Context) {
-        _, exists := location_map[c.Param("location")]
-        if exists {
-            c.HTML(200, "request.html", gin.H{
-                "location": location_map[c.Param("location")],
-            })
-        } else {
-            c.String(404, "Unknown Location.");
-        }
-    })
+    // r.GET("/request/:location", func(c *gin.Context) {
+    //     _, exists := location_map[c.Param("location")]
+    //     if exists {
+    //         // c.HTML(200, "request.html", gin.H{
+    //         //     "location": location_map[c.Param("location")],
+    //         // })
+	// 		// c.String(200, location_map[c.Param("location")])
+	// 		c.String(200, "chom")
+    //     } else {
+    //         c.String(404, "Unknown Location.");
+    //     }
+    // })
 
     // For canceling requests
 	r.GET("/nvm", func(c *gin.Context) {
