@@ -64,12 +64,38 @@ func sub(client mqtt.Client, topic string) {
 }
 
 func main() {
-	// MQTT setup (and a lot of it)
-	var broker = os.Getenv("LMI_BROKER")
-	var port, _ = strconv.Atoi(os.Getenv("LMI_BROKER_PORT"))
-	fmt.Println("broker ",broker," port ",port)
+	// Get environment variables
+	var broker, brokerMissing = os.LookupEnv("LMI_BROKER")
+	var port, portMissing = os.LookupEnv("LMI_BROKER_PORT")
+	var portNumber = 1883 // Set a reasonable default.
+	var lmiTemplates, lmiTemplatesMissing = os.LookupEnv("LMI_TEMPLATES")
+	var lmiStatic, lmiStaticMissing = os.LookupEnv("LMI_STATIC")
+
+	// Make sure the variables actually exist
+	if !brokerMissing {
+		fmt.Println("Error! MQTT Broker not specified.")
+		return
+	}
+
+	if !portMissing {
+		fmt.Println("Warning! MQTT Port not specified. Defaulting to 1883...")
+	} else {
+		portNumber, _ = strconv.Atoi(port)
+	}
+
+	if !lmiTemplatesMissing {
+		fmt.Println("Error! LMI_TEMPLATES not specified.")
+		return
+	}
+
+	if !lmiStaticMissing {
+		fmt.Println("Error! LMI_STATIC not specified.")
+		return
+	}
+
+	fmt.Println("MQTT broker ", broker, " port ", portNumber)
 	opts := mqtt.NewClientOptions()
-	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, port))
+	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, portNumber))
 	opts.SetClientID("go_mqtt_client")
 	opts.SetDefaultPublishHandler(messagePubHandler)
 	opts.OnConnect = connectHandler
@@ -86,11 +112,9 @@ func main() {
 	// Gin Setup
 	r := gin.Default()
 	r.SetTrustedProxies([]string{"0.0.0.0"})
-	fmt.Println(os.Getenv("LMI_TEMPLATES"))
-	fmt.Println(os.Getenv("LMI_STATIC"))
 
-	r.LoadHTMLGlob(os.Getenv("LMI_TEMPLATES"))
-	r.Static("/static", os.Getenv("LMI_STATIC"))
+	r.LoadHTMLGlob(lmiTemplates)
+	r.Static("/static", lmiStatic)
 
 	// ===== Route definitions =====
 
@@ -112,20 +136,6 @@ func main() {
             c.String(404, "Unknown Location.");
         }
 	})
-    
-    // Request to load the waiting screen 
-    // r.GET("/request/:location", func(c *gin.Context) {
-    //     _, exists := location_map[c.Param("location")]
-    //     if exists {
-    //         // c.HTML(200, "request.html", gin.H{
-    //         //     "location": location_map[c.Param("location")],
-    //         // })
-	// 		// c.String(200, location_map[c.Param("location")])
-	// 		c.String(200, "chom")
-    //     } else {
-    //         c.String(404, "Unknown Location.");
-    //     }
-    // })
 
     // For canceling requests
 	r.GET("/nvm", func(c *gin.Context) {
