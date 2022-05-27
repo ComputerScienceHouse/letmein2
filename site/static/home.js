@@ -20,7 +20,7 @@ function homePageSetup() {
                     requestModal.style.display = "inline";
                     const requestLocation = document.getElementById("request_modal_title");
                     requestLocation.innerText = "Requesting access at: " + text;
-                    knock();
+                    knock(`${button.id}`);
                 });
             }
         });
@@ -28,7 +28,7 @@ function homePageSetup() {
     }
 }
 
-function knock() {
+function knock(location) {
     const notification_header = document.getElementById("request_modal_title");
     const home_link = document.getElementById("request_modal_home_button");
     const cancel_link = document.getElementById("request_modal_cancel_button");
@@ -61,7 +61,7 @@ function knock() {
         }
     }, 1000);
 
-    fetch(`/anybody_home`, {
+    fetch(`/anybody_home/` + location, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -82,7 +82,7 @@ function knock() {
                         clearInterval(timeoutInterval);
                     }
                 });
-            } else if (resp.status == 408){
+            } else if (resp.status == 408) {
                 // notification_header.innerHTML = "Timed out.";
                 document.getElementById("request_timeout_alert").hidden = false;
                 document.getElementById("timeout_div").hidden = true;
