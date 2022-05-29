@@ -67,10 +67,10 @@ function knock(location) {
             'Content-Type': 'application/json'
         },
     })
-        .then(resp => {
-            console.log(resp);
-            if (resp.status == 200) {
-                return resp.text().then(text => {
+        .then(knockResp => {
+            console.log(knockResp);
+            if (knockResp.status == 200) {
+                return knockResp.text().then(text => {
                     if (text === "acked") {
                         // notification_header.innerHTML = "Request answered; Sit tight.";
                         document.getElementById("request_answer_alert").hidden = false;
@@ -82,7 +82,7 @@ function knock(location) {
                         clearInterval(timeoutInterval);
                     }
                 });
-            } else if (resp.status == 408) {
+            } else if (knockResp.status == 403) {
                 // notification_header.innerHTML = "Timed out.";
                 document.getElementById("request_timeout_alert").hidden = false;
                 document.getElementById("timeout_div").hidden = true;
@@ -95,7 +95,7 @@ function knock(location) {
 
 function nevermind() {
     fetch(`/nvm`, {
-        method: 'GET',
+        method: 'POST',
     }).then( () => {
         const requestModal = document.getElementById("request_modal");
         requestModal.style.display = "none";
