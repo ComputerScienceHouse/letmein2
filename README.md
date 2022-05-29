@@ -1,5 +1,7 @@
 # LetMeIn v2
 
+<img src="https://csh.rit.edu/~wilnil/storage/of-ohioan-descent.svg" alt="C badge" height="30px"/>
+
 Original Project: https://github.com/nfatkhiyev/letMeIn/
 
 LetMeIn2 is a completely new re-write of LetMeIn that focuses on scalability and maintainability, while keeping cost-per-unit as low as possible. Current development uses the [Feather S2](https://www.adafruit.com/product/4769), but we are looking at switching to the [Tiny S2](https://www.adafruit.com/product/5029) to reduce costs.
