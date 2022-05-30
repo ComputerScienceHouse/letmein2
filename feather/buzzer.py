@@ -2,6 +2,8 @@ import pulseio
 import asynccp
 import time
 
+from jingles import *
+
 class Buzzer:
     # IDK where that 32768 number comes from. Probably a clock cycle or some shit.
     speaker_on = 2**15 # 32768 value is 50% duty cycle, a square wave.
@@ -44,15 +46,6 @@ class Buzzer:
     # Set custom frequency
     def hz(self, hz):
         self.buzzer.frequency = hz
-
-    def boot(self):
-        self.on()
-        self.note("C4")
-        time.sleep(0.1)
-        self.note("F4")
-        time.sleep(0.2)
-        self.off()
-
 
     async def play(self, sequence):
         pass #TODO (willnilges): Implement some cool way to play jingles
