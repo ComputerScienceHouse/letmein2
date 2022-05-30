@@ -59,16 +59,15 @@ func mqttSubTopic(client mqtt.Client, handler mqtt.MessageHandler, topic string)
 }
 
 func main() {
-	// for k := range location_map {
-	// 	location_status.Store(k, IDLE)
-	// }
-
 	// Get environment variables
 	var broker, brokerMissing = os.LookupEnv("LMI_BROKER")
 	var port, portMissing = os.LookupEnv("LMI_BROKER_PORT")
 	var portNumber = 1883 // Set a reasonable default.
 	var lmiTemplates, lmiTemplatesMissing = os.LookupEnv("LMI_TEMPLATES")
 	var lmiStatic, lmiStaticMissing = os.LookupEnv("LMI_STATIC")
+
+	var timeout, timeoutMissing = os.LookupEnv("LMI_TIMEOUT")
+	var timeoutPeriod = 45 // Set a reasonable default.
 
 	// Make sure the variables actually exist
 	if !brokerMissing {
@@ -90,6 +89,12 @@ func main() {
 	if !lmiStaticMissing {
 		fmt.Println("Error! LMI_STATIC not specified.")
 		return
+	}
+
+	if !timeoutMissing {
+		fmt.Println("Warning! Timeout not specified. Defaulting to ", timeoutPeriod, "...")
+	} else {
+		timeoutPeriod, _ = strconv.Atoi(timeout)
 	}
 
 	fmt.Println("Configuring Server's MQTT Client... MQTT broker ", broker, " port", portNumber)
@@ -124,8 +129,14 @@ func main() {
 		})
 	})
 
-	// Route for requesting entry. Fires off an MQTT request. If it
-	// works, returns 200, so that the client can send an 'anybody_home'
+	/* Returns the current timeout period of the server. Could be used to get...
+	whatever tf else in the future. */
+	r.GET("/session_info", func(c *gin.Context) {
+		c.String(200, strconv.Itoa(timeoutPeriod))
+	})
+
+	/* Route for requesting entry. Fires off an MQTT request. If it
+	works, returns 200, so that the client can send an 'anybody_home' */
 	r.POST("/request/:location", func(c *gin.Context) {
 		userRequest := c.Param("location")
 		_, exists := location_map[userRequest]
@@ -146,12 +157,12 @@ func main() {
 	})
 
 	/*
-			   POST request sent by clients when they select a location.
-			   Will set up a channel, then wait a given amount of time for
-			   an answer. If an answer is received, it will resolve to a 200,
-			   otherwise it'll 408.
+		POST request sent by clients when they select a location.
+		Will set up a channel, then wait a given amount of time for
+		an answer. If an answer is received, it will resolve to a 200,
+		otherwise it'll 403.
 
-		       This is kinda cringe
+		This is kinda cringe. Less cringe. But still cringe.
 	*/
 
 	// Once the request is successfully sent, the client should call this,
@@ -166,42 +177,43 @@ func main() {
 
 		var requestMessageHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 			fmt.Printf("/anybody_home Received message \"%s\" from topic \"%s\"\n", msg.Payload(), msg.Topic())
-			if msg.Topic() == "letmein2/ack" && string(msg.Payload()) != "timeout" {
-				requestChannel <- "ack"
+			if msg.Topic() == "letmein2/ack" {
+				requestChannel <- string(msg.Payload())
 			}
 		}
 
 		fmt.Println("Creating /anybody_home ", userRequest, " MQTT broker ", broker, " port ", portNumber)
-		requestOpts := mqtt.NewClientOptions()
-		requestOpts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, portNumber))
-		requestOpts.SetClientID(userRequest + fmt.Sprintf("%d", mqtt_id))
+		reqOp := mqtt.NewClientOptions()
+		reqOp.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, portNumber))
+		reqOp.SetClientID(userRequest + fmt.Sprintf("%d", mqtt_id))
 		mqtt_id++
-		requestOpts.SetDefaultPublishHandler(requestMessageHandler)
-		requestOpts.OnConnect = connectHandler
-		requestOpts.OnConnectionLost = connectLostHandler
-		requestClient := mqtt.NewClient(requestOpts)
-		if token := requestClient.Connect(); token.Wait() && token.Error() != nil {
+		reqOp.SetDefaultPublishHandler(requestMessageHandler)
+		reqOp.OnConnect = connectHandler
+		reqOp.OnConnectionLost = connectLostHandler
+		reqCli := mqtt.NewClient(reqOp)
+		if token := reqCli.Connect(); token.Wait() && token.Error() != nil {
 			panic(token.Error())
 		}
-		mqttSubTopic(requestClient, requestMessageHandler, "letmein2/ack")
-		request_timeout_period := 10 // TODO: Use an environment variable, you dingus!
+		mqttSubTopic(reqCli, requestMessageHandler, "letmein2/ack")
 		select {
 		case acked := <-requestChannel:
-			if acked == "ack" {
+			if acked == "nvm" {
+				c.String(302, "/")
+			} else if acked == "timeout" {
+				c.String(403, acked) // This feels dumb...
+			} else {
 				fmt.Println("Got an answer! Returning 200!")
-				// location_status.Store(userRequest, ANSWERED)
 				c.String(200, "acked")
 			}
-		case <-time.After(time.Second * time.Duration(request_timeout_period)):
+		case <-time.After(time.Second * time.Duration(timeoutPeriod)):
 			fmt.Println("Request timed out. Returning 403!")
-			// location_status.Store(userRequest, TIMEOUT)
 			c.String(403, "timeout")
-			token := requestClient.Publish("letmein2/ack", 0, false, "timeout")
+			token := reqCli.Publish("letmein2/ack", 0, false, "timeout")
 			token.Wait()
 		}
 		close(requestChannel)
-		requestClient.Unsubscribe("letmein2/ack")
-		requestClient.Disconnect(250)
+		reqCli.Unsubscribe("letmein2/ack")
+		reqCli.Disconnect(250)
 		fmt.Println("Bye bye!")
 	})
 

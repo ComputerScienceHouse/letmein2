@@ -1,9 +1,21 @@
+let timeoutInterval;
+
+const locationList = document.getElementById("locationList");
+const requestModal = document.getElementById("request_modal");
+const homeLink = document.getElementById("request_modal_home_button");
+const cancelLink = document.getElementById("request_modal_cancel_button");
+const timeoutCounter = document.getElementById("timeout_counter");
+const timeoutBar = document.getElementById("timeout_bar");
+const requestTimeoutAlert = document.getElementById("request_timeout_alert");
+const requestAnswerAlert = document.getElementById("request_answer_alert");
+const timeoutDiv = document.getElementById("timeout_div");
+
+// TODO: This feels janky.
+// Sets up the event listeners for the various doors specified by the 
+// template in the webserver
 function homePageSetup() {
-    const locationList = document.getElementById("locationList");
-    const buttons = locationList.getElementsByTagName("button");
-    const requestModal = document.getElementById("request_modal");
     resetRequestModal();
-    
+    const buttons = locationList.getElementsByTagName("button");
     for(const button of buttons) {
       button.addEventListener("click", () => {
         fetch(`/request/${button.id}`, {
@@ -11,52 +23,53 @@ function homePageSetup() {
             headers: {
                 'Content-Type': 'application/json'
             },
-        }).then( resp => {
+        }).then( async resp => {
             console.log(resp);
             if (resp.status == 200) {
-                return resp.text().then(text => {
-                    console.log("Requesting access at location: " + text);
-                    //window.location.assign(`/request/${button.id}`);
-                    requestModal.style.display = "inline";
-                    const requestLocation = document.getElementById("request_modal_title");
-                    requestLocation.innerText = "Requesting access at: " + text;
-                    knock(`${button.id}`);
-                });
+                const text = await resp.text();
+                console.log("Requesting access at location: " + text);
+                requestModal.style.display = "inline";
+                const requestLocation = document.getElementById("request_modal_title");
+                requestLocation.innerText = "Requesting access at: " + text;
+                knock(`${button.id}`);
             }
         });
       });
     }
 }
 
-function knock(location) {
-    const notification_header = document.getElementById("request_modal_title");
-    const home_link = document.getElementById("request_modal_home_button");
-    const cancel_link = document.getElementById("request_modal_cancel_button");
-    resetRequestModal();
-    
-    // Set the date we're counting down to
-    //var countDownDate = new Date("May 25, 2022 15:37:25").getTime();
-    var timeout = 10; // TODO: Get this from the backend.
-    var countDownDate = new Date();
-    countDownDate.setSeconds(countDownDate.getSeconds() + timeout);
-    document.getElementById("timeout_counter").innerHTML = "Pending...";
-    document.getElementById("timeout_bar").setAttribute("style", "width: 0%");
+async function fetchTimeout() {
+    const response = await fetch(`/session_info/`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+    });
+    const timeoutPeriodText = await response.text();
+    return parseInt(timeoutPeriodText);
+}
 
-    // Start a timeout 
-    var timeoutInterval = setInterval(function() {
-        var now = new Date().getTime();
-        var distance = countDownDate - now; // Find the distance between now and the count down date
-        timeoutCounter = document.getElementById("timeout_counter");
-        timeoutCounter.innerHTML = Math.floor(distance / 1000) + " s";
-        var progress = Math.floor(((distance/1000 - 1)/timeout) * 100);
-        if (progress < 0) {
-            progress = 0;
-        }
-        document.getElementById("timeout_bar").setAttribute("style", "width: " + String(progress) + "%");
-        if (distance < 0) {
+/* After the MQTT request returns 200, this function will wait for a 200 from the
+backend signaling that someone has answered the request. If it times out, it should
+also receive a 403 that signals that the request could not be answered. */
+async function knock(location) {
+    resetRequestModal();
+    const timeout = await fetchTimeout(); // TODO: Get this from the backend.
+    const countDownDate = new Date();
+    countDownDate.setSeconds(countDownDate.getSeconds() + timeout);
+    timeoutCounter.innerHTML = timeout + " s";
+    timeoutBar.setAttribute("style", "width: 0%");
+    timeoutInterval = setInterval(function() {
+        let now = new Date().getTime();
+        let timeUntilTimeout = countDownDate - now;
+        timeoutCounter.innerHTML = Math.floor(timeUntilTimeout / 1000) + " s";
+        let progress = Math.floor(((timeUntilTimeout/1000 - 1)/timeout) * 100);
+        if (progress < 0) progress = 0;
+        timeoutBar.setAttribute("style", "width: " + String(progress) + "%");
+        if (timeUntilTimeout < 0) {
             clearInterval(timeoutInterval);
             timeoutCounter.hidden = true;
-            document.getElementById("timeout_bar").hidden = true;
+            timeoutBar.hidden = true;
         }
     }, 1000);
 
@@ -66,33 +79,34 @@ function knock(location) {
             'Content-Type': 'application/json'
         },
     })
-        .then(knockResp => {
+        .then(async knockResp => {
             console.log(knockResp);
             if (knockResp.status == 200) {
-                return knockResp.text().then(text => {
-                    if (text === "acked") {
-                        document.getElementById("request_answer_alert").hidden = false;
-                        document.getElementById("timeout_div").hidden = true;
-                        home_link.hidden = false;
-                        cancel_link.hidden = true;
-                        clearInterval(timeoutInterval);
-                    }
-                });
+                const text = await knockResp.text();
+                if (text === "acked") {
+                    requestAnswerAlert.hidden = false;
+                    timeoutDiv.hidden = true;
+                    homeLink.hidden = false;
+                    cancelLink.hidden = true;
+                    clearInterval(timeoutInterval);
+                }
             } else if (knockResp.status == 403) {
-                document.getElementById("request_timeout_alert").hidden = false;
-                document.getElementById("timeout_div").hidden = true;
-                home_link.hidden = false;
-                cancel_link.hidden = true;
+                requestAnswerAlert.hidden = false;
+                timeoutDiv.hidden = true;
+                homeLink.hidden = false;
+                cancelLink.hidden = true;
             }
-        })
+        });
 }
 
+// Cancels a request
 function nevermind() {
     fetch(`/nvm`, {
         method: 'POST',
     }).then( () => {
         const requestModal = document.getElementById("request_modal");
         requestModal.style.display = "none";
+        clearInterval(timeoutInterval);
     });
 }
 
@@ -103,14 +117,17 @@ function closeRequestModal() {
 
 function resetRequestModal() {
     // Stuff that should be hidden
-    document.getElementById("request_modal_home_button").hidden = true;
-    document.getElementById("request_timeout_alert").hidden = true;
+    homeLink.hidden = true;
+    requestTimeoutAlert.hidden = true;
     document.getElementById("request_answer_alert").hidden = true;
 
     // Stuff that should not be hidden
     document.getElementById("request_modal_cancel_button").hidden = false;
     document.getElementById("timeout_div").hidden = false;
 
-    document.getElementById("timeout_counter").hidden = false;
-    document.getElementById("timeout_bar").hidden = false;
+    timeoutCounter.hidden = false;
+    timeoutBar.hidden = false;
+
+    // Reset width of bar.
+    timeoutBar.setAttribute("style", "width: 0%");
 }
