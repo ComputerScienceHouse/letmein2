@@ -42,12 +42,10 @@ function knock(location) {
     document.getElementById("timeout_counter").innerHTML = "Pending...";
     document.getElementById("timeout_bar").setAttribute("style", "width: 0%");
 
-    // Update the count down every 1 second
+    // Start a timeout 
     var timeoutInterval = setInterval(function() {
-        // Get today's date and time
         var now = new Date().getTime();
-        // Find the distance between now and the count down date
-        var distance = countDownDate - now;
+        var distance = countDownDate - now; // Find the distance between now and the count down date
         timeoutCounter = document.getElementById("timeout_counter");
         timeoutCounter.innerHTML = Math.floor(distance / 1000) + " s";
         var progress = Math.floor(((distance/1000 - 1)/timeout) * 100);
@@ -57,7 +55,8 @@ function knock(location) {
         document.getElementById("timeout_bar").setAttribute("style", "width: " + String(progress) + "%");
         if (distance < 0) {
             clearInterval(timeoutInterval);
-            timeoutCounter.innerHTML = "EXPIRED";
+            timeoutCounter.hidden = true;
+            document.getElementById("timeout_bar").hidden = true;
         }
     }, 1000);
 
@@ -72,21 +71,16 @@ function knock(location) {
             if (knockResp.status == 200) {
                 return knockResp.text().then(text => {
                     if (text === "acked") {
-                        // notification_header.innerHTML = "Request answered; Sit tight.";
                         document.getElementById("request_answer_alert").hidden = false;
                         document.getElementById("timeout_div").hidden = true;
-
-                        // document.getElementById("request_modal_header").style.backgroundColor = "#00FF00";
                         home_link.hidden = false;
                         cancel_link.hidden = true;
                         clearInterval(timeoutInterval);
                     }
                 });
             } else if (knockResp.status == 403) {
-                // notification_header.innerHTML = "Timed out.";
                 document.getElementById("request_timeout_alert").hidden = false;
                 document.getElementById("timeout_div").hidden = true;
-                // document.getElementById("request_modal_header").style.backgroundColor = "#FF0000";
                 home_link.hidden = false;
                 cancel_link.hidden = true;
             }
@@ -113,7 +107,10 @@ function resetRequestModal() {
     document.getElementById("request_timeout_alert").hidden = true;
     document.getElementById("request_answer_alert").hidden = true;
 
-    // Stuff that should be visible
+    // Stuff that should not be hidden
     document.getElementById("request_modal_cancel_button").hidden = false;
     document.getElementById("timeout_div").hidden = false;
+
+    document.getElementById("timeout_counter").hidden = false;
+    document.getElementById("timeout_bar").hidden = false;
 }

@@ -37,27 +37,12 @@ var location_map = map[string]string{
 // TODO: This idiot will change any idiot from the "waiting" state to the "ack'ed"
 // state. It will not handle "timeout," because that's fucking stupid :)
 
+// TODO: Still need to implement states and check out what happens when you have multiple requests on one door and on multiple doors and shit like that.
+
 // Handle messages from subscribed topics
-// var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-// 	fmt.Printf("Main Server Received message \"%s\" from topic \"%s\"\n", msg.Payload(), msg.Topic())
-
-// 	/*
-// 	   If we receive an ack message that isn't a timeout, then set each active
-// 	   channel to 'true' (that'll cause the webpage the client is looking at to
-// 	   update and notify them of the good news), and then set the req_channels
-// 	   slice to nil to kill any references to the channels we're about to close.
-// 	*/
-// 	// if msg.Topic() == "letmein2/ack" && string(msg.Payload()) != "timeout" {
-// 	// 	for k := range location_map {
-// 	// 		location_status.Store(k, ANSWERED)
-// 	// 	}
-
-// 	// } else if msg.Topic() == "letmein2/ack" && string(msg.Payload()) == "nvm" {
-// 	// 	for k := range location_map {
-// 	// 		location_status.Store(k, IDLE) // TODO: This is wrong. This needs to cancel just one door. I think Max's way of doing this might actually work out better.
-// 	// 	}
-// 	// }
-// }
+var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+	fmt.Printf("Main Server Received message \"%s\" from topic \"%s\"\n", msg.Payload(), msg.Topic())
+}
 
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
 	fmt.Println("Connected to MQTT server")
@@ -107,17 +92,17 @@ func main() {
 		return
 	}
 
-	fmt.Println("Configuring Server's MQTT Client... MQTT broker ", broker, " port (haha but not really get fucked idiot)", portNumber)
-	// opts := mqtt.NewClientOptions()
-	// opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, portNumber))
-	// opts.SetClientID("main_server")
-	// opts.SetDefaultPublishHandler(messagePubHandler)
-	// opts.OnConnect = connectHandler
-	// opts.OnConnectionLost = connectLostHandler
-	// client := mqtt.NewClient(opts)
-	// if token := client.Connect(); token.Wait() && token.Error() != nil {
-	// 	panic(token.Error())
-	// }
+	fmt.Println("Configuring Server's MQTT Client... MQTT broker ", broker, " port", portNumber)
+	opts := mqtt.NewClientOptions()
+	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, portNumber))
+	opts.SetClientID("main_server")
+	opts.SetDefaultPublishHandler(messagePubHandler)
+	opts.OnConnect = connectHandler
+	opts.OnConnectionLost = connectLostHandler
+	client := mqtt.NewClient(opts)
+	if token := client.Connect(); token.Wait() && token.Error() != nil {
+		panic(token.Error())
+	}
 
 	// Subscribe to topics
 	// sub(client, "letmein2/req") // I don't think the server needs to subscribe to requests...?
@@ -145,6 +130,8 @@ func main() {
 		userRequest := c.Param("location")
 		_, exists := location_map[userRequest]
 		if exists {
+			token := client.Publish("letmein2/req", 0, false, userRequest)
+			token.Wait()
 			c.String(200, location_map[userRequest])
 		} else {
 			c.String(404, "Unknown Location.")
@@ -153,8 +140,8 @@ func main() {
 
 	// For canceling requests
 	r.POST("/nvm", func(c *gin.Context) {
-		// token := client.Publish("letmein2/ack", 0, false, "nvm")
-		// token.Wait()
+		token := client.Publish("letmein2/ack", 0, false, "nvm")
+		token.Wait()
 		c.Redirect(302, "/")
 	})
 
@@ -196,16 +183,8 @@ func main() {
 		if token := requestClient.Connect(); token.Wait() && token.Error() != nil {
 			panic(token.Error())
 		}
-
-		token := requestClient.Publish("letmein2/req", 0, false, userRequest)
-		token.Wait()
-
-		// Subscribe to topics
 		mqttSubTopic(requestClient, requestMessageHandler, "letmein2/ack")
-
 		request_timeout_period := 10 // TODO: Use an environment variable, you dingus!
-
-		// location_status.Store(userRequest, WAITING)
 		select {
 		case acked := <-requestChannel:
 			if acked == "ack" {
@@ -221,40 +200,11 @@ func main() {
 			token.Wait()
 		}
 		close(requestChannel)
-
-		// cooldown_period := 1
-		// userRequestStatus, _ := location_status.Load(userRequest)
-		// switch userRequestStatus {
-		// case IDLE:
-		// 	location_status.Store(userRequest, WAITING)
-		// 	select {
-		// 	case acked := <-requestChannel:
-		// 		if acked == "ack" {
-		// 			fmt.Printf("Returning ack....\n")
-		// 			location_status.Store(userRequest, ANSWERED)
-		// 			c.String(200, "acked")
-		// 		}
-		// 	case <-time.After(time.Second * time.Duration(request_timeout_period)):
-		// 		location_status.Store(userRequest, TIMEOUT)
-		// 		c.String(408, "timeout")
-		// 		token := requestClient.Publish("letmein2/ack", 0, false, "timeout")
-		// 		token.Wait()
-		// 	}
-		// case WAITING:
-		// 	// Not sure how to return the current timer. Hold on...
-		// case ANSWERED:
-		// 	fallthrough
-		// case TIMEOUT:
-		// 	time.Sleep(time.Duration(cooldown_period) * time.Second)
-		// 	location_status.Store(userRequest, IDLE)
-		// }
 		requestClient.Unsubscribe("letmein2/ack")
 		requestClient.Disconnect(250)
 		fmt.Println("Bye bye!")
 	})
 
 	r.Run()
-
-	// chom
-	// client.Disconnect(250)
+	client.Disconnect(250)
 }
