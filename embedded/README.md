@@ -6,12 +6,12 @@ Tested with a TinyS2 running Circuit Python 6.
 ## Libs
 You'll need the following to get the board to run
 
-- `adafruit_minimqtt`
-- `adafruit_requests`
-- `adafruit_ticks`
-- `asynccp`
-- `asyncio`
-- `simpleio`
+- [`adafruit_minimqtt`](https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT)
+- [`adafruit_requests`](https://github.com/adafruit/Adafruit_CircuitPython_Requests)
+- [`adafruit_ticks`](https://github.com/adafruit/Adafruit_CircuitPython_Ticks)
+- [`asynccp`](https://github.com/WarriorOfWire/CircuitPython_async)
+<!-- - [`asyncio`]() -->
+<!-- - [`simpleio`]() -->
 
 ## Installation
 - Plug in the client, drag and drop all python files over to it.
