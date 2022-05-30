@@ -59,14 +59,15 @@ async function knock(location) {
     countDownDate.setSeconds(countDownDate.getSeconds() + timeout);
     timeoutCounter.innerHTML = timeout + " s";
     timeoutBar.setAttribute("style", "width: 0%");
+    timeoutBar.setAttribute("style", "width: 100%");
     timeoutInterval = setInterval(function() {
         let now = new Date().getTime();
         let timeUntilTimeout = countDownDate - now;
-        timeoutCounter.innerHTML = Math.floor(timeUntilTimeout / 1000) + " s";
-        let progress = Math.floor(((timeUntilTimeout/1000 - 1)/timeout) * 100);
+        let progress = Math.ceil(((timeUntilTimeout/1000)/timeout) * 100);
         if (progress < 0) progress = 0;
+        timeoutCounter.innerHTML = Math.ceil(timeUntilTimeout / 1000) + " s";
         timeoutBar.setAttribute("style", "width: " + String(progress) + "%");
-        if (timeUntilTimeout < 0) {
+        if (timeUntilTimeout < -1000) {
             clearInterval(timeoutInterval);
             timeoutCounter.hidden = true;
             timeoutBar.hidden = true;
@@ -91,7 +92,8 @@ async function knock(location) {
                     clearInterval(timeoutInterval);
                 }
             } else if (knockResp.status == 403) {
-                requestAnswerAlert.hidden = false;
+                await new Promise(r => setTimeout(r, 1000)); // Delay to let the animation finish (this is fucking cursed)
+                requestTimeoutAlert.hidden = false;
                 timeoutDiv.hidden = true;
                 homeLink.hidden = false;
                 cancelLink.hidden = true;
