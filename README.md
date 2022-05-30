@@ -17,11 +17,14 @@ A user, let's say Alice, visits the website, she selects a floor. Her phone POST
 To subscribe to a device answering, use this:
 `mosquitto_sub -h mqtt.csh.rit.edu -t letmeinv2/ack -t letmeinv2/req`
 
-To run the container with mapped resources (for hacking), use this.
-`podman run --rm -it -v ./static:/static -v ./templates:/templates -p 8080:8080 letmein-site:latest`
+You could also set up an app like `MQTT Explorer` (Works on Mac and Linux. If you're using Windows, please stop.)
 
-To program the device:
+Check the `/site` directory for instructions on how to run the webserver.
+
+To program the device, just copy code over to the device that mounts on your computer when you plug it in:
 `cp Code/letmein2/feather/code.py /run/media/wilnil/CIRCUITPY/code.py`
+
+You can use a program like `minicom` to connect a serial console.
 
 ## Libs
 You'll need the following to get the board to run
