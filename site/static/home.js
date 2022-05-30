@@ -8,6 +8,7 @@ const timeoutCounter = document.getElementById("timeout_counter");
 const timeoutBar = document.getElementById("timeout_bar");
 const requestTimeoutAlert = document.getElementById("request_timeout_alert");
 const requestAnswerAlert = document.getElementById("request_answer_alert");
+const requestNvmAlert = document.getElementById("request_nvm_alert");
 const timeoutDiv = document.getElementById("timeout_div");
 
 // TODO: This feels janky.
@@ -106,14 +107,15 @@ function nevermind() {
     fetch(`/nvm`, {
         method: 'POST',
     }).then( () => {
-        const requestModal = document.getElementById("request_modal");
-        requestModal.style.display = "none";
+        requestNvmAlert.hidden = false;
+        timeoutDiv.hidden = true;
+        homeLink.hidden = false;
+        cancelLink.hidden = true;
         clearInterval(timeoutInterval);
     });
 }
 
 function closeRequestModal() {
-    const requestModal = document.getElementById("request_modal");
     requestModal.style.display = "none";
 }
 
@@ -121,7 +123,8 @@ function resetRequestModal() {
     // Stuff that should be hidden
     homeLink.hidden = true;
     requestTimeoutAlert.hidden = true;
-    document.getElementById("request_answer_alert").hidden = true;
+    requestAnswerAlert.hidden = true;
+    requestNvmAlert.hidden = true;
 
     // Stuff that should not be hidden
     document.getElementById("request_modal_cancel_button").hidden = false;
