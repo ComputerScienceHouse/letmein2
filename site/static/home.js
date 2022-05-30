@@ -25,10 +25,8 @@ function homePageSetup() {
                 'Content-Type': 'application/json'
             },
         }).then( async resp => {
-            console.log(resp);
             if (resp.status == 200) {
                 const text = await resp.text();
-                console.log("Requesting access at location: " + text);
                 requestModal.style.display = "inline";
                 const requestLocation = document.getElementById("request_modal_title");
                 requestLocation.innerText = "Requesting access at: " + text;
@@ -82,7 +80,6 @@ async function knock(location) {
         },
     })
         .then(async knockResp => {
-            console.log(knockResp);
             if (knockResp.status == 200) {
                 const text = await knockResp.text();
                 if (text === "acked") {
