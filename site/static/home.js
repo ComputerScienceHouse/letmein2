@@ -32,7 +32,7 @@ function homePageSetup() {
             "request_modal_title"
           );
           requestLocation.innerText = "Requesting access at: " + text;
-          knock(`${button.id}`);
+          knock(button.id);
         }
       });
     });
@@ -40,7 +40,7 @@ function homePageSetup() {
 }
 
 async function fetchTimeout() {
-  const response = await fetch(`/session_info/`, {
+  const response = await fetch("/session_info/", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -58,16 +58,16 @@ async function knock(location) {
   const timeout = await fetchTimeout(); // TODO: Get this from the backend.
   const countDownDate = new Date();
   countDownDate.setSeconds(countDownDate.getSeconds() + timeout);
-  timeoutCounter.innerHTML = timeout + " s";
-  timeoutBar.setAttribute("style", "width: 0%");
-  timeoutBar.setAttribute("style", "width: 100%");
+  timeoutCounter.innerHTML = `${timeout} s`;
+  timeoutBar.style.width = 0;
+  timeoutBar.style.width = "100%";
   timeoutInterval = setInterval(function () {
     let now = new Date().getTime();
     let timeUntilTimeout = countDownDate - now;
     let progress = Math.ceil((timeUntilTimeout / 1000 / timeout) * 100);
     if (progress < 0) progress = 0;
     timeoutCounter.innerHTML = Math.ceil(timeUntilTimeout / 1000) + " s";
-    timeoutBar.setAttribute("style", "width: " + String(progress) + "%");
+    timeoutBar.style.width = `${progress}%`;
     if (timeUntilTimeout < -1000) {
       clearInterval(timeoutInterval);
       timeoutCounter.hidden = true;
@@ -75,7 +75,7 @@ async function knock(location) {
     }
   }, 1000);
 
-  fetch(`/anybody_home/` + location, {
+  fetch(`/anybody_home/${location}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -102,7 +102,7 @@ async function knock(location) {
 
 // Cancels a request
 function nevermind() {
-  fetch(`/nvm`, {
+  fetch("/nvm", {
     method: "POST",
   }).then(() => {
     requestNvmAlert.hidden = false;
@@ -132,5 +132,7 @@ function resetRequestModal() {
   timeoutBar.hidden = false;
 
   // Reset width of bar.
-  timeoutBar.setAttribute("style", "width: 0%");
+  timeoutBar.style.width = 0;
 }
+
+homePageSetup();
