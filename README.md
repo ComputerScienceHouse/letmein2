@@ -1,6 +1,6 @@
 # LetMeIn v2 <img src="https://forthebadge.com/images/badges/you-didnt-ask-for-this.svg" alt="ohio badge" height="30px"/>
 
-<img src="https://csh.rit.edu/~wilnil/storage/of-ohioan-descent.svg" alt="ohio badge" height="30px"/> 
+<!-- <img src="https://csh.rit.edu/~wilnil/storage/of-ohioan-descent.svg" alt="ohio badge" height="30px"/>  -->
 
 <img src="https://forthebadge.com/images/badges/0-percent-optimized.svg" alt="0 badge" height="30px"/> <img src="https://forthebadge.com/images/badges/made-with-go.svg" alt="GO badge" height="30px"/> <img src="https://forthebadge.com/images/badges/made-with-python.svg" alt="Python badge" height="30px"/>
 
@@ -14,26 +14,23 @@ A user, let's say Alice, visits the website, she selects a floor. Her phone POST
 
 ## Developing
 
+### MQTT
 To subscribe to a device answering, use this:
 `mosquitto_sub -h mqtt.csh.rit.edu -t letmeinv2/ack -t letmeinv2/req`
 
-To run the container with mapped resources (for hacking), use this.
-`podman run --rm -it -v ./static:/static -v ./templates:/templates -p 8080:8080 letmein-site:latest`
+You could also set up an app like `MQTT Explorer` (Works on Mac and Linux. If you're using Windows, please stop.)
 
-To program the device:
-`cp Code/letmein2/feather/code.py /run/media/wilnil/CIRCUITPY/code.py`
+### Backend
+In production, the webserver is deployed to OKD.
 
-## Libs
-You'll need the following to get the board to run
+Check the `/site` directory for instructions on how to run the webserver.
 
-- `adafruit_minimqtt`
-- `adafruit_requests`
-- `adafruit_ticks`
-- `asynccp`
-- `asyncio`
-- `simpleio`
+### Client
+Check the `/embedded` directory for instructions on how to work on the clients.
 
-## Hardware (As of Prototype 3)
+You can use a program like `minicom` to connect a serial console.
+
+### Hardware (As of Prototype 3)
 
 You'll need:
 
@@ -44,8 +41,10 @@ You'll need:
 - 1x [Tiny S2](https://www.digikey.com/en/products/detail/adafruit-industries-llc/5029/14307381?s=N4IgTCBcDaICoEsB2BPAyhAugXyA)
 
 For the LED connectors:
-- 1x 10 Position Header
-- 1x 10 Position Header (male)
+- 1x 10 2.54mm pitch Position Header
+- 1x 10 2.54mm pitch Position Header (male)
+
+_This connector sucks. You should only need six headers to make the thing work. I hooked five of them up to GND when I was young and reckless._
 
 Optional:
 - 5x 680 ohm resistors for the LEDs (if you need to dim them)
@@ -56,3 +55,21 @@ If you'd like to socket your TinyS2, use these:
 
 
 Connect the button switch to COM and NO so that when the switch is closed, the circuit is completed and the button press is registered.
+
+## API
+
+### `/`
+Returns the homepage
+
+### `/session_info`
+Returns any relevant info that a client should be aware of. Currently only returns the current timeout period of the server.
+
+### `/request/:location`
+Prompts a server to publish a request for a particular door.
+
+### `/nvm`
+Cancels a request that a client sends to the server.
+<!--See the MVP issue for more info on this.-->
+
+### `/anybody_home/:location`
+Awaits an answer to a request made via the `/request/:location` route.

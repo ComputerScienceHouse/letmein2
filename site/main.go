@@ -34,24 +34,6 @@ var location_map = map[string]string{
 
 // TODO: Structured logging into Datadog?
 
-// TODO: This idiot will change any idiot from the "waiting" state to the "ack'ed"
-// state. It will not handle "timeout," because that's fucking stupid :)
-
-// TODO: Still need to implement states and check out what happens when you have multiple requests on one door and on multiple doors and shit like that.
-
-// Handle messages from subscribed topics
-var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	fmt.Printf("Main Server Received message \"%s\" from topic \"%s\"\n", msg.Payload(), msg.Topic())
-}
-
-var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
-	fmt.Println("Connected to MQTT server")
-}
-
-var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
-	fmt.Printf("Connect lost: %v\n", err)
-}
-
 func mqttSubTopic(client mqtt.Client, handler mqtt.MessageHandler, topic string) {
 	token := client.Subscribe(topic, 1, handler)
 	token.Wait()
@@ -95,6 +77,27 @@ func main() {
 		fmt.Println("Warning! Timeout not specified. Defaulting to ", timeoutPeriod, "...")
 	} else {
 		timeoutPeriod, _ = strconv.Atoi(timeout)
+	}
+
+	/*
+		TODO: This idiot will change any idiot from the "waiting" state to the "ack'ed" state.
+		It will not handle "timeout," because that's fucking stupid :)
+
+		TODO: Still need to implement states and check out what happens when you have multiple
+		requests on one door and on multiple doors and shit like that.
+	*/
+
+	// Handle messages from subscribed topics
+	var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+		fmt.Printf("Main Server Received message \"%s\" from topic \"%s\"\n", msg.Payload(), msg.Topic())
+	}
+
+	var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
+		fmt.Println("Connected to MQTT server")
+	}
+
+	var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
+		fmt.Printf("Connect lost: %v\n", err)
 	}
 
 	fmt.Println("Configuring Server's MQTT Client... MQTT broker ", broker, " port", portNumber)
