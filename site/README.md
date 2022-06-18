@@ -2,8 +2,8 @@
 To work on the site, you can either build and run Podman containers, or you can build and run a binary.
 
 ## Podman container
-1. Create an `.env.container` file using the `.env.template` file.
-2. `build_dev_instance.sh`
+1. `build_dev_instance.sh`
+2.  Fill out `.env.container` (Created after you run `build_dev_instance.sh`)
 3. `run_dev_instance.sh`
 
 ## Baremetal
