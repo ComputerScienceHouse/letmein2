@@ -8,6 +8,9 @@ Original Project: https://github.com/nfatkhiyev/letMeIn/
 
 LetMeIn2 is a completely new re-write of LetMeIn that focuses on scalability and maintainability, while keeping cost-per-unit as low as possible. Current development uses the [Tiny S2](https://www.adafruit.com/product/5029) to reduce costs.
 
+<img src="https://user-images.githubusercontent.com/42927786/175322711-ea0d8880-9d07-4e7d-a05b-ac3031fbf712.jpg" width="40%" height="40%"/>
+
+
 ## How it works
 
 A user, let's say Alice, visits the website, she selects a floor. Her phone POSTs to the server specifying where she is. The server will send an MQTT message on the letmein2/req topic with Alice's location. This will cause all letmein devices on floor to light up and make noise, indicating Alice's location. Alice's phone will redirect her to a waiting screen (/anybody_home) that does another POST request (could be a GET) that waits for the server to give her a 200 response. On the backend, two things could happen: One is that someone on floor could hit one of the buttons and go get her. That causes another MQTT message on the letmein2/ack topic, which answer's Alice's phone with a 200 message, and she's notified that someone is coming for her. The other is that nobody is there to answer the box (or maybe they don't like Alice), and after a set amount of time, the server sends Alice's phone a 408 message, and will send out a timeout message on the letmein2/ack topic.
