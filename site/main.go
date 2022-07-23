@@ -127,7 +127,7 @@ func main() {
 
 	// Homepage
 	r.GET("/", func(c *gin.Context) {
-		c.HTML(200, "home.html", gin.H{
+		c.HTML(200, "home.tmpl", gin.H{
 			"location_map": location_map,
 		})
 	})
