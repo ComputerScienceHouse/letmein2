@@ -1,13 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 var mqtt_id int = 0
@@ -38,6 +41,65 @@ func mqttSubTopic(client mqtt.Client, handler mqtt.MessageHandler, topic string)
 	token := client.Subscribe(topic, 1, handler)
 	token.Wait()
 	fmt.Printf("Subscribed to topic %s\n", topic)
+}
+
+var wsUpgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
+func wshandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := wsUpgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println("Failed to set websocket upgrade: %+v", err)
+		return
+	}
+
+	for {
+		t, msg, err := conn.ReadMessage()
+		if err != nil {
+			break
+		}
+		conn.WriteMessage(t, msg)
+	}
+}
+
+type KnockObject struct {
+	Event       string
+	CurrentTime int
+	MaxTime     int
+}
+
+func wsTimeoutHandler(w http.ResponseWriter, r *http.Request) {
+	timeoutEnv, _ := os.LookupEnv("LMI_TIMEOUT")
+	timeout, _ := strconv.Atoi(timeoutEnv)
+
+	fmt.Println("Somebody has knocked. Timeout is ", timeout, "s")
+
+	conn, err := wsUpgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println("Failed to set websocket upgrade: %+v", err)
+		return
+	}
+
+	// Defer the client to a goroutine.
+	// 1 second offset to make the timeout modal look better.
+	go doCountdown(conn, timeout+1)
+}
+
+func doCountdown(conn *websocket.Conn, timeout int) {
+	for i := timeout; i > 0; i-- {
+		message, _ := json.Marshal(KnockObject{"COUNTDOWN", i, timeout})
+		conn.WriteMessage(websocket.TextMessage, message) // json go brrr
+		time.Sleep(1 * time.Second)
+	}
+
+	timeoutMessage, _ := json.Marshal(KnockObject{"TIMEOUT", 0, timeout})
+	conn.WriteMessage(websocket.TextMessage, timeoutMessage)
+}
+
+func knockHandler(c *gin.Context) {
+	wsTimeoutHandler(c.Writer, c.Request)
 }
 
 func main() {
@@ -158,6 +220,8 @@ func main() {
 		token.Wait()
 		c.Redirect(302, "/")
 	})
+
+	r.GET("/knock/socket", knockHandler)
 
 	/*
 		POST request sent by clients when they select a location.

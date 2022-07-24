@@ -37,6 +37,11 @@ function homePageSetup() {
       });
     });
   }
+
+  const knockButton = document.getElementById("socketCountdown");
+  knockButton.addEventListener("click", () => {
+    knockSocket();
+  })
 }
 
 async function fetchTimeout() {
@@ -113,6 +118,10 @@ function nevermind() {
   });
 }
 
+function openRequestModal() {
+  requestModal.style.display = "inline";
+}
+
 function closeRequestModal() {
   requestModal.style.display = "none";
 }
@@ -133,6 +142,43 @@ function resetRequestModal() {
 
   // Reset width of bar.
   timeoutBar.style.width = 0;
+}
+
+function updateTimeoutBar(currentTime, maxTime) {
+  console.log("updateTimeoutbar: " + currentTime + " " + maxTime)
+  let progress = Math.ceil((currentTime / maxTime) * 100);
+  if (progress < 0) progress = 0;
+  timeoutCounter.innerHTML = currentTime + " s";
+  console.log("Progress: " + progress)
+  timeoutBar.style.width = `${progress}%`;
+  if (currentTime < -1000) {
+    // clearInterval(timeoutInterval);
+    timeoutCounter.hidden = true;
+    timeoutBar.hidden = true;
+  }
+}
+
+function knockSocket() {
+  url = 'ws://localhost:8080/knock/socket';
+  ws = new WebSocket(url);
+
+  ws.onopen = function(){
+    console.log("Connected to websocket :)")
+    resetRequestModal();
+    openRequestModal();
+  }
+
+  ws.onmessage = function(msg) {
+    console.log("Got message!" + msg.data);
+    data = JSON.parse(msg.data);
+    if (data.Event === "COUNTDOWN") {
+      // Apply a 1 second offset to make animation look good.
+      updateTimeoutBar(data.CurrentTime - 1, data.MaxTime - 1);
+    } else if (data.Event === "TIMEOUT") {
+      timeoutCounter.hidden = true;
+      timeoutBar.hidden = true;
+    }
+  }
 }
 
 homePageSetup();
