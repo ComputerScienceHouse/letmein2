@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -64,10 +65,15 @@ func wshandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// JSON go brrrrrr
 type KnockObject struct {
 	Event       string
 	CurrentTime int
 	MaxTime     int
+}
+
+func knockHandler(c *gin.Context) {
+	wsTimeoutHandler(c.Writer, c.Request)
 }
 
 func wsTimeoutHandler(w http.ResponseWriter, r *http.Request) {
@@ -81,13 +87,17 @@ func wsTimeoutHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Failed to set websocket upgrade: %+v", err)
 		return
 	}
+	conn.SetReadDeadline(time.Now().Add(time.Duration(timeout+2) * time.Second))
 
-	// Defer the client to a goroutine.
 	// 1 second offset to make the timeout modal look better.
-	go doCountdown(conn, timeout+1)
+	go knockDoCountdown(conn, timeout+1)
+
+	// Separate goroutine to handle reading websocket data
+	go knockWatchForNvm(conn)
 }
 
-func doCountdown(conn *websocket.Conn, timeout int) {
+func knockDoCountdown(conn *websocket.Conn, timeout int) {
+	defer conn.Close()
 	for i := timeout; i > 0; i-- {
 		message, _ := json.Marshal(KnockObject{"COUNTDOWN", i, timeout})
 		conn.WriteMessage(websocket.TextMessage, message) // json go brrr
@@ -98,8 +108,17 @@ func doCountdown(conn *websocket.Conn, timeout int) {
 	conn.WriteMessage(websocket.TextMessage, timeoutMessage)
 }
 
-func knockHandler(c *gin.Context) {
-	wsTimeoutHandler(c.Writer, c.Request)
+// TODO: Is this returning properly?
+func knockWatchForNvm(conn *websocket.Conn) {
+	_, message, err := conn.ReadMessage()
+	if err != nil {
+		log.Println("knockWatchForNvm:", err)
+		log.Println("Exiting knockWatchForNvm")
+		return
+	}
+	if string(message) == "NEVERMIND" {
+		fmt.Println("Got NEVERMIND!")
+	}
 }
 
 func main() {
@@ -195,7 +214,7 @@ func main() {
 	})
 
 	/* Returns the current timeout period of the server. Could be used to get...
-	whatever tf else in the future. */
+	whatever else in the future. */
 	r.GET("/session_info", func(c *gin.Context) {
 		c.String(200, strconv.Itoa(timeoutPeriod))
 	})

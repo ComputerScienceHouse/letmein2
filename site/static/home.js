@@ -118,6 +118,10 @@ function nevermind() {
   });
 }
 
+function socketNevermind(ws) {
+  ws.send("NEVERMIND")
+}
+
 function openRequestModal() {
   requestModal.style.display = "inline";
 }
@@ -145,11 +149,9 @@ function resetRequestModal() {
 }
 
 function updateTimeoutBar(currentTime, maxTime) {
-  console.log("updateTimeoutbar: " + currentTime + " " + maxTime)
   let progress = Math.ceil((currentTime / maxTime) * 100);
   if (progress < 0) progress = 0;
   timeoutCounter.innerHTML = currentTime + " s";
-  console.log("Progress: " + progress)
   timeoutBar.style.width = `${progress}%`;
   if (currentTime < -1000) {
     // clearInterval(timeoutInterval);
@@ -166,10 +168,12 @@ function knockSocket() {
     console.log("Connected to websocket :)")
     resetRequestModal();
     openRequestModal();
+    cancelLink.addEventListener("click", () => {
+      socketNevermind(ws);
+    });
   }
 
   ws.onmessage = function(msg) {
-    console.log("Got message!" + msg.data);
     data = JSON.parse(msg.data);
     if (data.Event === "COUNTDOWN") {
       // Apply a 1 second offset to make animation look good.
