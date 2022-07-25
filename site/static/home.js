@@ -19,23 +19,26 @@ function homePageSetup() {
   const buttons = locationList.getElementsByTagName("button");
   for (const button of buttons) {
     button.addEventListener("click", () => {
-      fetch(`/request/${button.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }).then(async (resp) => {
-        if (resp.status == 200) {
-          const text = await resp.text();
-          requestModal.style.display = "inline";
-          const requestLocation = document.getElementById(
-            "request_modal_title"
-          );
-          requestLocation.innerText = "Requesting access at: " + text;
-          knock(button.id);
-        }
-      });
+      knockSocket(`${button.id}`);
     });
+    // button.addEventListener("click", () => {
+    //   fetch(`/request/${button.id}`, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   }).then(async (resp) => {
+    //     if (resp.status == 200) {
+    //       const text = await resp.text();
+    //       requestModal.style.display = "inline";
+    //       const requestLocation = document.getElementById(
+    //         "request_modal_title"
+    //       );
+    //       requestLocation.innerText = "Requesting access at: " + text;
+    //       knock(button.id);
+    //     }
+    //   });
+    // });
   }
 
   const knockButton = document.getElementById("socketCountdown");
@@ -119,7 +122,11 @@ function nevermind() {
 }
 
 function socketNevermind(ws) {
-  ws.send("NEVERMIND")
+  ws.send("NEVERMIND");
+  requestNvmAlert.hidden = false;
+  timeoutDiv.hidden = true;
+  homeLink.hidden = false;
+  cancelLink.hidden = true;
 }
 
 function openRequestModal() {
@@ -160,8 +167,8 @@ function updateTimeoutBar(currentTime, maxTime) {
   }
 }
 
-function knockSocket() {
-  url = 'ws://localhost:8080/knock/socket/test';
+function knockSocket(location) {
+  url = 'ws://localhost:8080/knock/socket/' + location;
   ws = new WebSocket(url);
 
   ws.onopen = function(){
@@ -175,12 +182,23 @@ function knockSocket() {
 
   ws.onmessage = function(msg) {
     data = JSON.parse(msg.data);
+    console.log(data)
     if (data.Event === "COUNTDOWN") {
       // Apply a 1 second offset to make animation look good.
       updateTimeoutBar(data.CurrentTime - 1, data.MaxTime - 1);
+    } else if (data.Event === "ACKNOWLEDGE") {
+      requestAnswerAlert.hidden = false;
+      timeoutDiv.hidden = true;
+      homeLink.hidden = false;
+      cancelLink.hidden = true;
     } else if (data.Event === "TIMEOUT") {
       timeoutCounter.hidden = true;
       timeoutBar.hidden = true;
+
+      requestTimeoutAlert.hidden = false;
+      timeoutDiv.hidden = true;
+      homeLink.hidden = false;
+      cancelLink.hidden = true;
     }
   }
 }

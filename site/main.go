@@ -61,10 +61,13 @@ func knockCreateMQTTClient(knockID string, conn *websocket.Conn, location string
 
 	var requestMessageHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 		fmt.Printf("/knock Received message \"%s\" from topic \"%s\"\n", msg.Payload(), msg.Topic())
-		if msg.Topic() == "letmein2/ack" {
+		// The only use the server has is listening for an ack from a
+		// device.
+		if msg.Topic() == "letmein2/ack" && string(msg.Payload()) != "nvm" {
 			// TODO (willnilges): Give location of acknowledging device.
 			message, _ := json.Marshal(KnockObject{"ACKNOWLEDGE", 0, timeout})
 			conn.WriteMessage(websocket.TextMessage, message)
+			conn.Close()
 		}
 	}
 
@@ -104,6 +107,10 @@ func knockHandler(c *gin.Context) {
 
 	mqttClient := knockCreateMQTTClient(knockID, conn, location, timeout)
 
+	// Send the request to subscribed devices.
+	token := mqttClient.Publish("letmein2/req", 0, false, location)
+	token.Wait()
+
 	// 1 second offset to make the timeout modal look better.
 	go knockDoCountdown(knockID, conn, mqttClient, timeout+1)
 
@@ -119,7 +126,11 @@ func knockDoCountdown(knockID string, wsConn *websocket.Conn, mqttClient mqtt.Cl
 	defer knockCleanup(knockID, wsConn, mqttClient)
 	for i := timeout; i > 0; i-- {
 		message, _ := json.Marshal(KnockObject{"COUNTDOWN", i, timeout})
-		wsConn.WriteMessage(websocket.TextMessage, message) // json go brrr
+		err := wsConn.WriteMessage(websocket.TextMessage, message) // json go brrr
+		if err != nil {
+			log.Println("knockDoCountdown: ", err, ". exiting for ", knockID)
+			return
+		}
 		time.Sleep(1 * time.Second)
 	}
 	token := mqttClient.Publish("letmein2/ack", 0, false, "timeout")
@@ -132,11 +143,12 @@ func knockReadClientMsg(knockID string, wsConn *websocket.Conn, mqttClient mqtt.
 	// defer knockCleanup(knockID, wsConn, mqttClient)
 	_, message, err := wsConn.ReadMessage()
 	if err != nil {
-		log.Println("knockWatchForNvm:", err)
+		log.Println("knockWatchForNvm:", err, ". exiting for ", knockID)
 		return
 	}
 	if string(message) == "NEVERMIND" {
 		fmt.Println("Got NEVERMIND!")
+		wsConn.Close()
 		token := mqttClient.Publish("letmein2/ack", 0, false, "nvm")
 		token.Wait()
 	}
