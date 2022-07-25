@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -49,76 +48,105 @@ var wsUpgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func wshandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := wsUpgrader.Upgrade(w, r, nil)
-	if err != nil {
-		fmt.Println("Failed to set websocket upgrade: %+v", err)
-		return
-	}
-
-	for {
-		t, msg, err := conn.ReadMessage()
-		if err != nil {
-			break
-		}
-		conn.WriteMessage(t, msg)
-	}
-}
-
-// JSON go brrrrrr
 type KnockObject struct {
 	Event       string
 	CurrentTime int
 	MaxTime     int
 }
 
-func knockHandler(c *gin.Context) {
-	wsTimeoutHandler(c.Writer, c.Request)
+func knockCreateMQTTClient(knockID string, conn *websocket.Conn, location string, timeout int) (client mqtt.Client) {
+	var broker, _ = os.LookupEnv("LMI_BROKER")
+	var port, _ = os.LookupEnv("LMI_BROKER_PORT")
+	var portNumber, _ = strconv.Atoi(port)
+
+	var requestMessageHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+		fmt.Printf("/knock Received message \"%s\" from topic \"%s\"\n", msg.Payload(), msg.Topic())
+		if msg.Topic() == "letmein2/ack" {
+			// TODO (willnilges): Give location of acknowledging device.
+			message, _ := json.Marshal(KnockObject{"ACKNOWLEDGE", 0, timeout})
+			conn.WriteMessage(websocket.TextMessage, message)
+		}
+	}
+
+	cliOp := mqtt.NewClientOptions()
+	cliOp.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, portNumber))
+	cliOp.SetClientID(knockID)
+	cliOp.SetDefaultPublishHandler(requestMessageHandler)
+
+	client = mqtt.NewClient(cliOp)
+	if token := client.Connect(); token.Wait() && token.Error() != nil {
+		panic(token.Error())
+	}
+
+	mqttSubTopic(client, requestMessageHandler, "letmein2/ack")
+	return
 }
 
-func wsTimeoutHandler(w http.ResponseWriter, r *http.Request) {
+func knockHandler(c *gin.Context) {
+	location := c.Param("location")
+	knockID := location + fmt.Sprintf("%d", mqtt_id)
+	mqtt_id++
+	w := c.Writer
+	r := c.Request
+
 	timeoutEnv, _ := os.LookupEnv("LMI_TIMEOUT")
 	timeout, _ := strconv.Atoi(timeoutEnv)
 
 	fmt.Println("Somebody has knocked. Timeout is ", timeout, "s")
 
+	// Set up a websocket connection with the client.
 	conn, err := wsUpgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Failed to set websocket upgrade: %+v", err)
+		c.String(500, "Failed to set websocket upgrade.")
 		return
 	}
-	conn.SetReadDeadline(time.Now().Add(time.Duration(timeout+2) * time.Second))
+
+	mqttClient := knockCreateMQTTClient(knockID, conn, location, timeout)
 
 	// 1 second offset to make the timeout modal look better.
-	go knockDoCountdown(conn, timeout+1)
+	go knockDoCountdown(knockID, conn, mqttClient, timeout+1)
 
 	// Separate goroutine to handle reading websocket data
-	go knockWatchForNvm(conn)
+	go knockReadClientMsg(knockID, conn, mqttClient)
+
+	// Set read deadline. This will kill the websocket and related functions
+	// if the request times out.
+	conn.SetReadDeadline(time.Now().Add(time.Duration(timeout+2) * time.Second))
 }
 
-func knockDoCountdown(conn *websocket.Conn, timeout int) {
-	defer conn.Close()
+func knockDoCountdown(knockID string, wsConn *websocket.Conn, mqttClient mqtt.Client, timeout int) {
+	defer knockCleanup(knockID, wsConn, mqttClient)
 	for i := timeout; i > 0; i-- {
 		message, _ := json.Marshal(KnockObject{"COUNTDOWN", i, timeout})
-		conn.WriteMessage(websocket.TextMessage, message) // json go brrr
+		wsConn.WriteMessage(websocket.TextMessage, message) // json go brrr
 		time.Sleep(1 * time.Second)
 	}
-
+	token := mqttClient.Publish("letmein2/ack", 0, false, "timeout")
+	token.Wait()
 	timeoutMessage, _ := json.Marshal(KnockObject{"TIMEOUT", 0, timeout})
-	conn.WriteMessage(websocket.TextMessage, timeoutMessage)
+	wsConn.WriteMessage(websocket.TextMessage, timeoutMessage)
 }
 
-// TODO: Is this returning properly?
-func knockWatchForNvm(conn *websocket.Conn) {
-	_, message, err := conn.ReadMessage()
+func knockReadClientMsg(knockID string, wsConn *websocket.Conn, mqttClient mqtt.Client) {
+	// defer knockCleanup(knockID, wsConn, mqttClient)
+	_, message, err := wsConn.ReadMessage()
 	if err != nil {
 		log.Println("knockWatchForNvm:", err)
-		log.Println("Exiting knockWatchForNvm")
 		return
 	}
 	if string(message) == "NEVERMIND" {
 		fmt.Println("Got NEVERMIND!")
+		token := mqttClient.Publish("letmein2/ack", 0, false, "nvm")
+		token.Wait()
 	}
+}
+
+func knockCleanup(knockID string, wsConn *websocket.Conn, mqttClient mqtt.Client) {
+	wsConn.Close()
+	mqttClient.Unsubscribe("letmein2/ack")
+	mqttClient.Disconnect(250)
+	fmt.Println("Cleaning up knock ", knockID)
 }
 
 func main() {
@@ -181,7 +209,7 @@ func main() {
 		fmt.Printf("Connect lost: %v\n", err)
 	}
 
-	fmt.Println("Configuring Server's MQTT Client... MQTT broker ", broker, " port", portNumber)
+	fmt.Println("Configuring Server's MQTT Client. MQTT broker = ", broker, ", port = ", portNumber)
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, portNumber))
 	opts.SetClientID("main_server")
@@ -240,7 +268,7 @@ func main() {
 		c.Redirect(302, "/")
 	})
 
-	r.GET("/knock/socket", knockHandler)
+	r.GET("/knock/socket/:location", knockHandler)
 
 	/*
 		POST request sent by clients when they select a location.

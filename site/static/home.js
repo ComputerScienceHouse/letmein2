@@ -40,7 +40,7 @@ function homePageSetup() {
 
   const knockButton = document.getElementById("socketCountdown");
   knockButton.addEventListener("click", () => {
-    knockSocket();
+    knockSocket("test");
   })
 }
 
@@ -161,7 +161,7 @@ function updateTimeoutBar(currentTime, maxTime) {
 }
 
 function knockSocket() {
-  url = 'ws://localhost:8080/knock/socket';
+  url = 'ws://localhost:8080/knock/socket/test';
   ws = new WebSocket(url);
 
   ws.onopen = function(){
