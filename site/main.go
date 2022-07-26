@@ -54,6 +54,11 @@ type KnockObject struct {
 	MaxTime     int
 }
 
+type KnockClientObject struct {
+	Event    string
+	Location string
+}
+
 func knockCreateMQTTClient(knockID string, conn *websocket.Conn, location string, timeout int) (client mqtt.Client) {
 	var broker, _ = os.LookupEnv("LMI_BROKER")
 	var port, _ = os.LookupEnv("LMI_BROKER_PORT")
@@ -146,10 +151,17 @@ func knockReadClientMsg(knockID string, wsConn *websocket.Conn, mqttClient mqtt.
 		log.Println("knockWatchForNvm:", err, ". exiting for ", knockID)
 		return
 	}
-	if string(message) == "NEVERMIND" {
-		fmt.Println("Got NEVERMIND!")
+	clientMessageObject := KnockClientObject{}
+	err = json.Unmarshal([]byte(message), &clientMessageObject)
+	if err != nil {
+		log.Println("knockWatchForNvm:", err, ".")
+		return
+	}
+	if clientMessageObject.Event == "NEVERMIND" {
+		fmt.Println("Got NEVERMIND at ", clientMessageObject.Location)
 		wsConn.Close()
-		token := mqttClient.Publish("letmein2/ack", 0, false, "nvm")
+		// TODO: support this on the device lol
+		token := mqttClient.Publish("letmein2/nvm", 0, false, clientMessageObject.Location)
 		token.Wait()
 	}
 }

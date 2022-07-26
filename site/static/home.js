@@ -121,8 +121,9 @@ function nevermind() {
   });
 }
 
-function socketNevermind(ws) {
-  ws.send("NEVERMIND");
+function socketNevermind(ws, location) {
+  let nvmPayload = JSON.stringify({Event: "NEVERMIND", location: location})
+  ws.send(nvmPayload);
   requestNvmAlert.hidden = false;
   timeoutDiv.hidden = true;
   homeLink.hidden = false;
@@ -176,7 +177,7 @@ function knockSocket(location) {
     resetRequestModal();
     openRequestModal();
     cancelLink.addEventListener("click", () => {
-      socketNevermind(ws);
+      socketNevermind(ws, location);
     });
   }
 
