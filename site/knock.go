@@ -102,6 +102,13 @@ func knockHandler(c *gin.Context) {
 		return
 	}
 
+	message, _ := json.Marshal(KnockClientObject{"LOCATION", location_map[location]})
+	err = conn.WriteMessage(websocket.TextMessage, message)
+	if err != nil {
+		log.Println("knockHandler:", err)
+		return
+	}
+
 	mqttClient := knockCreateMQTTClient(knockID, conn, location, timeout)
 
 	// Send the request to subscribed devices.

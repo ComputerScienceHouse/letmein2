@@ -10,6 +10,7 @@ const requestTimeoutAlert = document.getElementById("request_timeout_alert");
 const requestAnswerAlert = document.getElementById("request_answer_alert");
 const requestNvmAlert = document.getElementById("request_nvm_alert");
 const timeoutDiv = document.getElementById("timeout_div");
+const requestTitle = document.getElementById("request_modal_title");
 
 // TODO: This feels janky.
 // Sets up the event listeners for the various doors specified by the
@@ -21,110 +22,58 @@ function homePageSetup() {
     button.addEventListener("click", () => {
       knockSocket(`${button.id}`);
     });
-    // button.addEventListener("click", () => {
-    //   fetch(`/request/${button.id}`, {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //   }).then(async (resp) => {
-    //     if (resp.status == 200) {
-    //       const text = await resp.text();
-    //       requestModal.style.display = "inline";
-    //       const requestLocation = document.getElementById(
-    //         "request_modal_title"
-    //       );
-    //       requestLocation.innerText = "Requesting access at: " + text;
-    //       knock(button.id);
-    //     }
-    //   });
-    // });
+  }
+}
+
+function knockSocket(location) {
+  url = 'ws://localhost:8080/knock/socket/' + location;
+  ws = new WebSocket(url);
+
+  ws.onopen = function(){
+    console.log("Connected to websocket :)")
+    resetRequestModal();
+    openRequestModal();
+    cancelLink.addEventListener("click", () => {
+      socketNevermind(ws, location);
+    });
   }
 
-  const knockButton = document.getElementById("socketCountdown");
-  knockButton.addEventListener("click", () => {
-    knockSocket("test");
-  })
-}
-
-async function fetchTimeout() {
-  const response = await fetch("/session_info/", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  const timeoutPeriodText = await response.text();
-  return parseInt(timeoutPeriodText);
-}
-
-/* After the MQTT request returns 200, this function will wait for a 200 from the
-backend signaling that someone has answered the request. If it times out, it should
-also receive a 403 that signals that the request could not be answered. */
-async function knock(location) {
-  resetRequestModal();
-  const timeout = await fetchTimeout(); // TODO: Get this from the backend.
-  const countDownDate = new Date();
-  countDownDate.setSeconds(countDownDate.getSeconds() + timeout);
-  timeoutCounter.innerHTML = `${timeout} s`;
-  timeoutBar.style.width = 0;
-  timeoutBar.style.width = "100%";
-  timeoutInterval = setInterval(function () {
-    let now = new Date().getTime();
-    let timeUntilTimeout = countDownDate - now;
-    let progress = Math.ceil((timeUntilTimeout / 1000 / timeout) * 100);
-    if (progress < 0) progress = 0;
-    timeoutCounter.innerHTML = Math.ceil(timeUntilTimeout / 1000) + " s";
-    timeoutBar.style.width = `${progress}%`;
-    if (timeUntilTimeout < -1000) {
-      clearInterval(timeoutInterval);
-      timeoutCounter.hidden = true;
-      timeoutBar.hidden = true;
+  ws.onmessage = function(msg) {
+    data = JSON.parse(msg.data);
+    console.log(data)
+    if (data.Event === "LOCATION") {
+      requestTitle.innerText = "Requesting Access at " + data.Location
+    } else if (data.Event === "COUNTDOWN") {
+      // Apply a 1 second offset to make animation look good.
+      updateTimeoutBar(data.CurrentTime - 1, data.MaxTime - 1);
+    } else if (data.Event === "ACKNOWLEDGE") {
+      displayAcknowledge();
+    } else if (data.Event === "TIMEOUT") {
+      displayTimeout();
     }
-  }, 1000);
-
-  fetch(`/anybody_home/${location}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  }).then(async (knockResp) => {
-    if (knockResp.status == 200) {
-      const text = await knockResp.text();
-      if (text === "acked") {
-        requestAnswerAlert.hidden = false;
-        timeoutDiv.hidden = true;
-        homeLink.hidden = false;
-        cancelLink.hidden = true;
-        clearInterval(timeoutInterval);
-      }
-    } else if (knockResp.status == 403) {
-      await new Promise((r) => setTimeout(r, 1000)); // Delay to let the animation finish (this is fucking cursed)
-      requestTimeoutAlert.hidden = false;
-      timeoutDiv.hidden = true;
-      homeLink.hidden = false;
-      cancelLink.hidden = true;
-    }
-  });
-}
-
-// Cancels a request
-function nevermind() {
-  fetch("/nvm", {
-    method: "POST",
-  }).then(() => {
-    requestNvmAlert.hidden = false;
-    timeoutDiv.hidden = true;
-    homeLink.hidden = false;
-    cancelLink.hidden = true;
-    clearInterval(timeoutInterval);
-  });
+  }
 }
 
 function socketNevermind(ws, location) {
   let nvmPayload = JSON.stringify({Event: "NEVERMIND", location: location})
   ws.send(nvmPayload);
   requestNvmAlert.hidden = false;
+  timeoutDiv.hidden = true;
+  homeLink.hidden = false;
+  cancelLink.hidden = true;
+}
+
+function displayAcknowledge() {
+  requestAnswerAlert.hidden = false;
+  timeoutDiv.hidden = true;
+  homeLink.hidden = false;
+  cancelLink.hidden = true;
+}
+
+function displayTimeout() {
+  timeoutCounter.hidden = true;
+  timeoutBar.hidden = true;
+  requestTimeoutAlert.hidden = false;
   timeoutDiv.hidden = true;
   homeLink.hidden = false;
   cancelLink.hidden = true;
@@ -165,42 +114,6 @@ function updateTimeoutBar(currentTime, maxTime) {
     // clearInterval(timeoutInterval);
     timeoutCounter.hidden = true;
     timeoutBar.hidden = true;
-  }
-}
-
-function knockSocket(location) {
-  url = 'ws://localhost:8080/knock/socket/' + location;
-  ws = new WebSocket(url);
-
-  ws.onopen = function(){
-    console.log("Connected to websocket :)")
-    resetRequestModal();
-    openRequestModal();
-    cancelLink.addEventListener("click", () => {
-      socketNevermind(ws, location);
-    });
-  }
-
-  ws.onmessage = function(msg) {
-    data = JSON.parse(msg.data);
-    console.log(data)
-    if (data.Event === "COUNTDOWN") {
-      // Apply a 1 second offset to make animation look good.
-      updateTimeoutBar(data.CurrentTime - 1, data.MaxTime - 1);
-    } else if (data.Event === "ACKNOWLEDGE") {
-      requestAnswerAlert.hidden = false;
-      timeoutDiv.hidden = true;
-      homeLink.hidden = false;
-      cancelLink.hidden = true;
-    } else if (data.Event === "TIMEOUT") {
-      timeoutCounter.hidden = true;
-      timeoutBar.hidden = true;
-
-      requestTimeoutAlert.hidden = false;
-      timeoutDiv.hidden = true;
-      homeLink.hidden = false;
-      cancelLink.hidden = true;
-    }
   }
 }
 
