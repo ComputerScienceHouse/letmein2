@@ -11,9 +11,7 @@
 
 #locationList {
     display: flex;
-    justify-content: center;
+    align-content: center;
+    flex-direction: column;
     flex-wrap: wrap;
-    /* padding-top: 20px;
-    margin-left: 20%;
-    margin-right: 20%; */
 }

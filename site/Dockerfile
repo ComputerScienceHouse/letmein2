@@ -3,7 +3,7 @@ FROM golang as builder
 WORKDIR /build
 COPY go.mod go.sum *.go . 
 #RUN go mod tidy
-RUN go get -d ./...
+RUN go get -d .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o letmein2 .
 
 FROM alpine:latest

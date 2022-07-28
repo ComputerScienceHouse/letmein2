@@ -111,6 +111,19 @@ def message(client, topic, message):
         s_stairs.value = 0
         n_stairs.value = 0
         l_well.value = 0
+    elif topic == mqtt_nvm_topic:
+        # TODO: Set up some kind of configurable dingus for this (and other)
+        # location-based trees
+        if message == "level_a":
+            level_a.value = 0
+        elif message == "level_1":
+            level_1.value = 0
+        elif message == "s_stairs":
+            s_stairs.value = 0
+        elif message == "n_stairs":
+            n_stairs.value = 0
+        elif message == "l_well":
+            l_well.value = 0
 
 if __name__ == '__main__':
     main()
