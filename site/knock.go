@@ -84,7 +84,7 @@ func knockCreateMQTTClient(knockID string, conn *websocket.Conn, location string
 
 func knockHandler(c *gin.Context) {
 	location := c.Param("location")
-	knockID := location + fmt.Sprintf("%d", mqtt_id)
+	knockID := location + fmt.Sprintf("_%d", mqtt_id)
 	mqtt_id++
 	w := c.Writer
 	r := c.Request
