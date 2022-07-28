@@ -32,7 +32,7 @@ function knockSocket(location) {
   ws.onopen = function(){
     console.log("Connected to websocket :)")
     resetRequestModal();
-    openRequestModal();
+    // openRequestModal();
     cancelLink.addEventListener("click", () => {
       socketNevermind(ws, location);
     });
@@ -79,13 +79,13 @@ function displayTimeout() {
   cancelLink.hidden = true;
 }
 
-function openRequestModal() {
-  requestModal.style.display = "inline";
-}
+// function openRequestModal() {
+//   requestModal.style.display = "inline";
+// }
 
-function closeRequestModal() {
-  requestModal.style.display = "none";
-}
+// function closeRequestModal() {
+//   requestModal.style.display = "none";
+// }
 
 function resetRequestModal() {
   // Stuff that should be hidden
@@ -95,8 +95,8 @@ function resetRequestModal() {
   requestNvmAlert.hidden = true;
 
   // Stuff that should not be hidden
-  document.getElementById("request_modal_cancel_button").hidden = false;
-  document.getElementById("timeout_div").hidden = false;
+  cancelLink.hidden = false;
+  timeoutDiv.hidden = false;
 
   timeoutCounter.hidden = false;
   timeoutBar.hidden = false;

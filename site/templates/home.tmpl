@@ -50,10 +50,10 @@
     </h2>
     <div id="locationList">
         {{ range $key, $value := .location_map }}
-        <button id="{{ $key }}" class="btn btn-outline-primary beeg">{{ $value }}</button>
+        <button id="{{ $key }}" data-toggle="modal" data-target="#request_modal" class="btn btn-outline-primary beeg">{{ $value }}</button>
         {{ end }}
     </div>
-    <div id="request_modal" class="modal">
+    <div id="request_modal" class="modal fade" role="dialog" aria-labelledby="request_modal_label" aria-hidden="true">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header" id="request_modal_header">
@@ -63,17 +63,17 @@
               </button> -->
             </div>
             <div class="modal-body" id="request_modal_dialog">
-                <div class="alert alert-success" id="request_answer_alert" style="margin-bottom: 0px;" hidden>
+                <div class="alert alert-success" id="request_answer_alert" style="margin-bottom: 0px;">
                     <!-- <button type="button" class="close" data-dismiss="alert">&times;</button> -->
                     <strong>Request answered</strong>
                     <p>Sit tight!</p>
                 </div>
-                <div class="alert alert-danger" id="request_timeout_alert" style="margin-bottom: 0px;" hidden>
+                <div class="alert alert-danger" id="request_timeout_alert" style="margin-bottom: 0px;">
                     <!-- <button type="button" class="close" data-dismiss="alert">&times;</button> -->
                     <strong>Nobody could answer your request</strong>
                     <p>Please come back later.</p>
                 </div>
-                <div class="alert alert-warning" id="request_nvm_alert" style="margin-bottom: 0px;" hidden>
+                <div class="alert alert-warning" id="request_nvm_alert" style="margin-bottom: 0px;">
                     <!-- <button type="button" class="close" data-dismiss="alert">&times;</button> -->
                     <strong>Request cancelled</strong>
                     <p>Your request has been cancelled.</p>
@@ -81,14 +81,14 @@
                 <div id="timeout_div">
                     <p id="timeout_counter"> Pending...</p>
                     <div class="progress">
-                        <div class="progress-bar bg-success" id="timeout_bar" role="progressbar" style="width: 100%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar bg-success" id="timeout_bar" role="progressbar" style="width: 100%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
               <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
-              <button id="request_modal_cancel_button" type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-              <button id="request_modal_home_button" type="button" class="btn btn-primary" data-dismiss="modal" onclick="closeRequestModal();">Close</button>
+              <button id="request_modal_cancel_button" type="button" class="btn btn-danger">Cancel</button>
+              <button id="request_modal_home_button" type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
             </div>
           </div>
         </div>

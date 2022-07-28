@@ -11,8 +11,10 @@
 
 #locationList {
     display: flex;
-    justify-content: center;
+    /* justify-content: center; */
     flex-wrap: wrap;
+    flex-direction: column;
+    align-content: center;
     /* padding-top: 20px;
     margin-left: 20%;
     margin-right: 20%; */
