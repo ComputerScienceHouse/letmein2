@@ -57,6 +57,7 @@ type KnockObject struct {
 
 type KnockClientObject struct {
 	Event    string
+    Name     string
 	Location string
 }
 
@@ -113,7 +114,7 @@ func (knock Knock) handler(c *gin.Context) {
 		return
 	}
 
-	message, _ := json.Marshal(KnockClientObject{"LOCATION", location_map[location]})
+	message, _ := json.Marshal(KnockClientObject{"LOCATION", "", location_map[location]})
 	err = conn.WriteMessage(websocket.TextMessage, message)
 	if err != nil {
 		log.Println("knockHandler:", err)
@@ -132,7 +133,7 @@ func (knock Knock) handler(c *gin.Context) {
 	// Separate goroutine to handle reading websocket data
 	go knock.readClientMsg(knockID, conn, mqttClient)
 
-    go knock.slackBot.sendKnock("Willard \"FOSS Kid\" Nilges", location_map[location])
+ //   go knock.slackBot.sendKnock("Willard \"FOSS Kid\" Nilges", location_map[location])
 
 	// Set read deadline. This will kill the websocket and related functions
 	// if the request times out.
@@ -176,6 +177,10 @@ func (knock Knock) readClientMsg(knockID string, wsConn *websocket.Conn, mqttCli
 		token := mqttClient.Publish("letmein2/nvm", 0, false, clientMessageObject.Location)
 		token.Wait()
 	}
+    if clientMessageObject.Event == "NAME" {
+        fmt.Println("Got NAME: ", clientMessageObject.Name)
+        go knock.slackBot.sendKnock(clientMessageObject.Name, location_map[clientMessageObject.Location])
+    }
 }
 
 func (knock Knock) cleanup(knockID string, wsConn *websocket.Conn, mqttClient mqtt.Client) {
