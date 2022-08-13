@@ -13,7 +13,22 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var mqtt_id int = 0
+type KnockInterface interface {
+    mqttSubTopic()
+    createMQTTClient()
+    handler()
+    doCountdown()
+    readClientMsg()
+    cleanup()
+}
+
+type Knock struct {
+    slackBot SlackBot
+    mqttID int
+    broker string
+    port int
+    timeout int
+}
 
 // Set up locations (TODO: Config file?)
 // var location_status sync.Map
@@ -28,12 +43,6 @@ var location_map = map[string]string{
 }
 
 // TODO (willnilges): Structured logging into Datadog
-
-func mqttSubTopic(client mqtt.Client, handler mqtt.MessageHandler, topic string) {
-	token := client.Subscribe(topic, 1, handler)
-	token.Wait()
-	fmt.Printf("Subscribed to topic %s\n", topic)
-}
 
 var wsUpgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -51,11 +60,13 @@ type KnockClientObject struct {
 	Location string
 }
 
-func knockCreateMQTTClient(knockID string, conn *websocket.Conn, location string, timeout int) (client mqtt.Client) {
-	var broker, _ = os.LookupEnv("LMI_BROKER")
-	var port, _ = os.LookupEnv("LMI_BROKER_PORT")
-	var portNumber, _ = strconv.Atoi(port)
+func mqttSubTopic(client mqtt.Client, handler mqtt.MessageHandler, topic string) {
+	token := client.Subscribe(topic, 1, handler)
+	token.Wait()
+	fmt.Printf("Subscribed to topic %s\n", topic)
+}
 
+func (knock Knock) createMQTTClient(knockID string, conn *websocket.Conn, location string, timeout int) (client mqtt.Client) {
 	var requestMessageHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 		fmt.Printf("/knock Received message \"%s\" from topic \"%s\"\n", msg.Payload(), msg.Topic())
 		// The only use the server has is listening for an ack from a
@@ -69,7 +80,7 @@ func knockCreateMQTTClient(knockID string, conn *websocket.Conn, location string
 	}
 
 	cliOp := mqtt.NewClientOptions()
-	cliOp.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, portNumber))
+	cliOp.AddBroker(fmt.Sprintf("tcp://%s:%d", knock.broker, knock.port))
 	cliOp.SetClientID(knockID)
 	cliOp.SetDefaultPublishHandler(requestMessageHandler)
 
@@ -82,10 +93,10 @@ func knockCreateMQTTClient(knockID string, conn *websocket.Conn, location string
 	return
 }
 
-func knockHandler(c *gin.Context) {
+func (knock Knock) handler(c *gin.Context) {
 	location := c.Param("location")
-	knockID := location + fmt.Sprintf("_%d", mqtt_id)
-	mqtt_id++
+	knockID := location + fmt.Sprintf("_%d", knock.mqttID)
+	knock.mqttID++
 	w := c.Writer
 	r := c.Request
 
@@ -109,25 +120,27 @@ func knockHandler(c *gin.Context) {
 		return
 	}
 
-	mqttClient := knockCreateMQTTClient(knockID, conn, location, timeout)
+	mqttClient := knock.createMQTTClient(knockID, conn, location, timeout)
 
 	// Send the request to subscribed devices.
 	token := mqttClient.Publish("letmein2/req", 0, false, location)
 	token.Wait()
 
 	// 1 second offset to make the timeout modal look better.
-	go knockDoCountdown(knockID, conn, mqttClient, timeout+1)
+	go knock.doCountdown(knockID, conn, mqttClient, timeout+1)
 
 	// Separate goroutine to handle reading websocket data
-	go knockReadClientMsg(knockID, conn, mqttClient)
+	go knock.readClientMsg(knockID, conn, mqttClient)
+
+    go knock.slackBot.sendKnock("Willard \"FOSS Kid\" Nilges", location_map[location])
 
 	// Set read deadline. This will kill the websocket and related functions
 	// if the request times out.
 	conn.SetReadDeadline(time.Now().Add(time.Duration(timeout+2) * time.Second))
 }
 
-func knockDoCountdown(knockID string, wsConn *websocket.Conn, mqttClient mqtt.Client, timeout int) {
-	defer knockCleanup(knockID, wsConn, mqttClient)
+func (knock Knock) doCountdown(knockID string, wsConn *websocket.Conn, mqttClient mqtt.Client, timeout int) {
+	defer knock.cleanup(knockID, wsConn, mqttClient)
 	for i := timeout; i > 0; i-- {
 		message, _ := json.Marshal(KnockObject{"COUNTDOWN", i, timeout})
 		err := wsConn.WriteMessage(websocket.TextMessage, message) // json go brrr
@@ -143,7 +156,7 @@ func knockDoCountdown(knockID string, wsConn *websocket.Conn, mqttClient mqtt.Cl
 	wsConn.WriteMessage(websocket.TextMessage, timeoutMessage)
 }
 
-func knockReadClientMsg(knockID string, wsConn *websocket.Conn, mqttClient mqtt.Client) {
+func (knock Knock) readClientMsg(knockID string, wsConn *websocket.Conn, mqttClient mqtt.Client) {
 	// defer knockCleanup(knockID, wsConn, mqttClient)
 	_, message, err := wsConn.ReadMessage()
 	if err != nil {
@@ -165,7 +178,7 @@ func knockReadClientMsg(knockID string, wsConn *websocket.Conn, mqttClient mqtt.
 	}
 }
 
-func knockCleanup(knockID string, wsConn *websocket.Conn, mqttClient mqtt.Client) {
+func (knock Knock) cleanup(knockID string, wsConn *websocket.Conn, mqttClient mqtt.Client) {
 	wsConn.Close()
 	mqttClient.Unsubscribe("letmein2/ack")
 	mqttClient.Disconnect(250)

@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
     "log"
     "github.com/slack-go/slack"
 )
@@ -16,13 +17,8 @@ type SlackBot struct {
     channelID string
 }
 
-func NewSlackBot(oauthToken string, channelID string) (*slack.Client) {
+func NewSlackBot(oauthToken string, channelID string) (SlackBot) {
     return SlackBot{slack.New(oauthToken), channelID}
-}
-
-func (bot SlackBot) connectAPI(oauthToken string, channelID string) {
-    bot.api = slack.New(oauthToken)
-    bot.channelID = channelID
 }
 
 func (bot SlackBot) testMessage() {
@@ -40,15 +36,18 @@ func (bot SlackBot) testMessage() {
 }
 
 func (bot SlackBot) sendKnock(username string, location string) {
-    attachment := slack.Attachment {
+    // TODO: Allow people to answer from Slack?
+    /*attachment := slack.Attachment {
         Pretext: "my sick-ass pretext",
         Text: "Chom from LetMeIn2",
-    }
+    }*/
 
+    // TODO: Change the channel back to bot.channelID
+    // botspam: C06HLL9CL
+    request := fmt.Sprintf("*%s* is requesting entry at *%s*", username, location);
     channelID, timestamp, err := bot.api.PostMessage(
-        bot.channelID,
-        slack.MsgOptionText("My dope-ass primary message", false),
-        slack.MsgOptionAttachments(attachment),
+        "C06HLL9CL",
+        slack.MsgOptionText(request, false),
         slack.MsgOptionAsUser(true),
     )
 

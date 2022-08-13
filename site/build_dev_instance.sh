@@ -1,3 +1,5 @@
+#!/bin/bash
+set -e 
 podman build . --tag=letmein-site
 if test -f ".env.container"; then
 	echo ".env.container already exists. Not creating."

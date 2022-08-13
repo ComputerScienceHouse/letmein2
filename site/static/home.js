@@ -2,6 +2,7 @@ let timeoutInterval;
 
 const locationList = document.getElementById("locationList");
 const requestModal = document.getElementById("request_modal");
+const nameModal = document.getElementById("name_modal");
 const homeLink = document.getElementById("request_modal_home_button");
 const cancelLink = document.getElementById("request_modal_cancel_button");
 const timeoutCounter = document.getElementById("timeout_counter");
