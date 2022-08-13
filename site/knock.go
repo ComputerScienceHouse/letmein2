@@ -27,7 +27,7 @@ var location_map = map[string]string{
 	"l_well":   "L Well",
 }
 
-// TODO: Structured logging into Datadog?
+// TODO (willnilges): Structured logging into Datadog
 
 func mqttSubTopic(client mqtt.Client, handler mqtt.MessageHandler, topic string) {
 	token := client.Subscribe(topic, 1, handler)

@@ -6,30 +6,32 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+    "github.com/slack-go/slack"
 )
 
 func main() {
 	// Get environment variables
-	var broker, brokerMissing = os.LookupEnv("LMI_BROKER")
-	var port, portMissing = os.LookupEnv("LMI_BROKER_PORT")
-	var portNumber = 1883 // Set a reasonable default.
+	//var broker, brokerMissing = os.LookupEnv("LMI_BROKER")
+	//var port, portMissing = os.LookupEnv("LMI_BROKER_PORT")
+	//var portNumber = 1883 // Set a reasonable default.
 	var lmiTemplates, lmiTemplatesMissing = os.LookupEnv("LMI_TEMPLATES")
 	var lmiStatic, lmiStaticMissing = os.LookupEnv("LMI_STATIC")
-
-	var timeout, timeoutMissing = os.LookupEnv("LMI_TIMEOUT")
-	var timeoutPeriod = 45 // Set a reasonable default.
+	//var timeout, timeoutMissing = os.LookupEnv("LMI_TIMEOUT")
+	//var timeoutPeriod = 45 // Set a reasonable default.
+	var oauthToken, oauthMissing = os.LookupEnv("LMI_OAUTH")
+	var channelID, channelMissing = os.LookupEnv("LMI_CHANNEL")
 
 	// Make sure the variables actually exist
-	if !brokerMissing {
-		fmt.Println("Error! MQTT Broker not specified.")
-		return
-	}
+	//if !brokerMissing {
+	//	fmt.Println("Error! MQTT Broker not specified.")
+	//	return
+	//}
 
-	if !portMissing {
-		fmt.Println("Warning! MQTT Port not specified. Defaulting to 1883...")
-	} else {
-		portNumber, _ = strconv.Atoi(port)
-	}
+	//if !portMissing {
+	//	fmt.Println("Warning! MQTT Port not specified. Defaulting to 1883...")
+	//} else {
+	//	portNumber, _ = strconv.Atoi(port)
+	//}
 
 	if !lmiTemplatesMissing {
 		fmt.Println("Error! LMI_TEMPLATES not specified.")
@@ -41,10 +43,20 @@ func main() {
 		return
 	}
 
-	if !timeoutMissing {
-		fmt.Println("Warning! Timeout not specified. Defaulting to ", timeoutPeriod, "...")
-	} else {
-		timeoutPeriod, _ = strconv.Atoi(timeout)
+	//if !timeoutMissing {
+	//	fmt.Println("Warning! Timeout not specified. Defaulting to ", timeoutPeriod, "...")
+	//} else {
+	//	timeoutPeriod, _ = strconv.Atoi(timeout)
+	//}
+
+	if !oauthMissing {
+		fmt.Println("Error! LMI_OAUTH not specified.")
+		return
+	}
+
+	if !channelMissing {
+		fmt.Println("Error! LMI_CHANNEL not specified.")
+		return
 	}
 
 	fmt.Println(" MQTT broker = ", broker, ", port = ", portNumber)
@@ -55,6 +67,8 @@ func main() {
 
 	r.LoadHTMLGlob(lmiTemplates)
 	r.Static("/static", lmiStatic)
+
+    bot := NewSlackBot(oauthToken, channelID)
 
 	// ===== Route definitions =====
 
