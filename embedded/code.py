@@ -1,4 +1,5 @@
-import time, gc, os, board, tinys2, digitalio, wifi, socketpool, ssl, adafruit_minimqtt.adafruit_minimqtt as MQTT, ipaddress, adafruit_requests, asynccp
+import time, gc, os, board, tinys2, digitalio, wifi, socketpool, ssl
+import adafruit_minimqtt.adafruit_minimqtt as MQTT
 from secrets import *
 from gpio import *
 from jingles import Jingle
