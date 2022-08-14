@@ -15,11 +15,12 @@ func main() {
 	var portNumber = 1883 // Set a reasonable default.
 	var lmiTemplates, lmiTemplatesMissing = os.LookupEnv("LMI_TEMPLATES")
 	var lmiStatic, lmiStaticMissing = os.LookupEnv("LMI_STATIC")
-
 	var timeout, timeoutMissing = os.LookupEnv("LMI_TIMEOUT")
 	var timeoutPeriod = 45 // Set a reasonable default.
+	var oauthToken, oauthMissing = os.LookupEnv("LMI_OAUTH")
+	var channelID, channelMissing = os.LookupEnv("LMI_CHANNEL")
 
-	// Make sure the variables actually exist
+	//Make sure the variables actually exist
 	if !brokerMissing {
 		fmt.Println("Error! MQTT Broker not specified.")
 		return
@@ -47,6 +48,16 @@ func main() {
 		timeoutPeriod, _ = strconv.Atoi(timeout)
 	}
 
+	if !oauthMissing {
+		fmt.Println("Error! LMI_OAUTH not specified.")
+		return
+	}
+
+	if !channelMissing {
+		fmt.Println("Error! LMI_CHANNEL not specified.")
+		return
+	}
+
 	fmt.Println(" MQTT broker = ", broker, ", port = ", portNumber)
 
 	// Gin Setup
@@ -55,6 +66,9 @@ func main() {
 
 	r.LoadHTMLGlob(lmiTemplates)
 	r.Static("/static", lmiStatic)
+
+    bot := NewSlackBot(oauthToken, channelID)
+    knock := Knock{bot, 0, broker, portNumber, timeoutPeriod}
 
 	// ===== Route definitions =====
 
@@ -65,7 +79,7 @@ func main() {
 		})
 	})
 
-	r.GET("/knock/socket/:location", knockHandler)
+	r.GET("/knock/socket/:location", knock.handler)
 
 	r.Run()
 }

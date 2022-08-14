@@ -2,6 +2,7 @@ let timeoutInterval;
 
 const locationList = document.getElementById("locationList");
 const requestModal = document.getElementById("request_modal");
+const nameInput = document.getElementById("knock_name_input");
 const homeLink = document.getElementById("request_modal_home_button");
 const cancelLink = document.getElementById("request_modal_cancel_button");
 const timeoutCounter = document.getElementById("timeout_counter");
@@ -31,6 +32,8 @@ function knockSocket(location) {
 
   ws.onopen = function(){
     console.log("Connected to websocket :)")
+    let namePayload = JSON.stringify({"Event": "NAME", "name": nameInput.value, "location": location});
+    ws.send(namePayload);
     resetRequestModal();
     // openRequestModal();
     cancelLink.addEventListener("click", () => {
