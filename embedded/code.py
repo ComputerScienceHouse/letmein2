@@ -15,18 +15,12 @@ def main():
         print('Location not set! Please set location.')
         exit(1)
 
-    # Play a little boot jingle to indicate startup
-    buzz = Jingle(board.IO4)
-    buzz.jingle_boot()
-
     # ===== WIFI =====
     print(f'Connecting to {secrets["ssid"]}')
     print('mac address:', "%02x:%02x:%02x:%02x:%02x:%02x" % tuple(map(int, wifi.radio.mac_address)))
     wifi.radio.connect(secrets['ssid'], secrets['password'])
     print(f'Connected to {secrets["ssid"]}!')
-        
-    # Create a socket pool
-    pool = socketpool.SocketPool(wifi.radio)
+    pool = socketpool.SocketPool(wifi.radio) # Create a socket pool
 
     # Set up MQTT Client
     mqtt_client = MQTT.MQTT(
@@ -35,9 +29,6 @@ def main():
         socket_pool=pool,
         ssl_context=ssl.create_default_context(),
     )
-
-    app = LMIApp(buzz, mqtt_client)
-
     mqtt_client.on_message = message
 
     print("Attempting to connect to %s" % mqtt_client.broker)
@@ -45,19 +36,21 @@ def main():
     mqtt_client.subscribe(mqtt_req_topic)
     mqtt_client.subscribe(mqtt_ack_topic)
     mqtt_client.subscribe(mqtt_nvm_topic)
-
-    asynccp.schedule(frequency=10, coroutine_function=app.check_ack)
-    asynccp.schedule(frequency=10, coroutine_function=app.check_req)
-    asynccp.schedule(frequency=10, coroutine_function=app.check_mqtt)
-    asynccp.schedule(frequency=10, coroutine_function=app.check_stfu)
-    asynccp.schedule(frequency=1, coroutine_function=app.stfu_decay)
-
+    mqtt_client.subscribe(mqtt_timeout_topic)
 
     # Jingle + ASCII art to let the user know the board is ready to go
     art_ready()
-    buzz.jingle_ready()
 
-    asynccp.run()
+    while True:
+        mqtt_client.loop()
+        print('chom')
+        check_ack(mqtt_client)
+
+
+def check_ack(mqtt_client):
+    if ack.value:
+        mqtt_client.publish(mqtt_ack_topic, f"{secrets['location']}")
+        all_off()
 
 def message(client, topic, message):
     # Method called when a client's subscribed feed has a new value.
@@ -73,12 +66,25 @@ def message(client, topic, message):
             n_stairs.value = 1
         elif message == "l_well":
             l_well.value = 1
-    elif topic == mqtt_ack_topic: # Eww, this is cringe. The MQTT client is still subbed so it gets messages and turns on the lights, but then it just turns right back off. Should fix this. IDEA: Sub/Unsub.
+    elif topic == mqtt_ack_topic:
+        # FIXME (willnilges): The MQTT client is still subbed so it gets messages and turns on the lights, but then it just turns right back off. Should fix this. IDEA: Sub/Unsub.
+        # TODO (willnilges): Perhaps a timeout topic would be nice.
         level_a.value = 0
         level_1.value = 0
         s_stairs.value = 0
         n_stairs.value = 0
         l_well.value = 0
+    elif topic == mqtt_timeout_topic:
+        if "level_a" in message:
+            level_a.value = 0
+        elif "level_1" in message:
+            level_1.value = 0
+        elif "s_stairs" in message:
+            s_stairs.value = 0
+        elif "n_stairs" in message:
+            n_stairs.value = 0
+        elif "l_well" in message:
+            l_well.value = 0
     elif topic == mqtt_nvm_topic:
         # TODO: Set up some kind of configurable dingus for this (and other)
         # location-based trees

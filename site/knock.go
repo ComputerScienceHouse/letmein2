@@ -69,6 +69,7 @@ func (knock *Knock) handler(c *gin.Context) {
         MaxTime: knock.timeout,
         Name: "",
         Location: location_map[location],
+        ShortLocation: location,
     }
 
 	message, _ := json.Marshal(knockEvent)
@@ -138,12 +139,13 @@ type KnockEventInterface interface {
 }
 
 type KnockEvent struct {
-    ID          string
-    Event       string
-    CurrentTime int
-    MaxTime     int
-    Name        string
-    Location    string
+    ID            string
+    Event         string
+    CurrentTime   int
+    MaxTime       int
+    Name          string
+    Location      string
+    ShortLocation string
 }
 
 func (knockEvent KnockEvent) doCountdown(wsConn *websocket.Conn, mqttClient mqtt.Client, timeout int) {
@@ -159,7 +161,7 @@ func (knockEvent KnockEvent) doCountdown(wsConn *websocket.Conn, mqttClient mqtt
 		}
 		time.Sleep(1 * time.Second)
 	}
-	token := mqttClient.Publish("letmein2/ack", 0, false, "timeout")
+	token := mqttClient.Publish("letmein2/timeout", 0, false, knockEvent.ShortLocation)
 	token.Wait()
     knockEvent.Event = "TIMEOUT"
     knockEvent.CurrentTime = 0;
@@ -168,28 +170,30 @@ func (knockEvent KnockEvent) doCountdown(wsConn *websocket.Conn, mqttClient mqtt
 }
 
 func (knockEvent KnockEvent) readClientMsg(wsConn *websocket.Conn, mqttClient mqtt.Client, bot SlackBot) {
-	// defer knockCleanup(knockID, wsConn, mqttClient)
-	_, message, err := wsConn.ReadMessage()
-	if err != nil {
-		log.Println("knockWatchForNvm:", err, ". exiting for ", knockEvent.ID)
-		return
-	}
-	clientMessageObject := KnockEvent{}
-	err = json.Unmarshal([]byte(message), &clientMessageObject)
-	if err != nil {
-		log.Println("knockWatchForNvm:", err, ".")
-		return
-	}
-	if clientMessageObject.Event == "NEVERMIND" {
-		fmt.Println("Got NEVERMIND at ", clientMessageObject.Location)
-		wsConn.Close()
-		// TODO: support this on the device lol
-		token := mqttClient.Publish("letmein2/nvm", 0, false, clientMessageObject.Location)
-		token.Wait()
-	}
-    if clientMessageObject.Event == "NAME" {
-        fmt.Println("Got NAME: ", clientMessageObject.Name)
-        go bot.sendKnock(clientMessageObject.Name, location_map[clientMessageObject.Location])
+    for {
+        _, message, err := wsConn.ReadMessage()
+        if err != nil {
+            log.Println("knockWatchForNvm:", err, ". exiting for ", knockEvent.ID)
+            return
+        }
+        clientMessageObject := KnockEvent{}
+        err = json.Unmarshal([]byte(message), &clientMessageObject)
+        fmt.Println("Recieved message from client in session ", knockEvent.ID, ". Message: ", clientMessageObject);
+        if err != nil {
+            log.Println("knockWatchForNvm:", err, ".")
+            return
+        }
+        if clientMessageObject.Event == "NEVERMIND" {
+            fmt.Println("Got NEVERMIND at ", clientMessageObject.Location)
+            wsConn.Close()
+            // TODO: support this on the device lol
+            token := mqttClient.Publish("letmein2/nvm", 0, false, clientMessageObject.Location)
+            token.Wait()
+        }
+        if clientMessageObject.Event == "NAME" {
+            fmt.Println("Got NAME: ", clientMessageObject.Name)
+            go bot.sendKnock(clientMessageObject.Name, location_map[clientMessageObject.Location])
+        }
     }
 }
 
