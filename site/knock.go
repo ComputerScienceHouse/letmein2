@@ -23,6 +23,13 @@ var location_map = map[string]string{
 	"l_well":   "L Well",
 }
 
+// TODO (willnilges): Structured logging into Datadog
+
+var wsUpgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
 type KnockInterface interface {
     handler()
     createMQTTClient()
@@ -36,14 +43,15 @@ type Knock struct {
     timeout int
 }
 
-func (knock Knock) handler(c *gin.Context) {
+// Functions to handle requests from the webserver
+func (knock *Knock) handler(c *gin.Context) {
 	location := c.Param("location")
 	knockID := location + fmt.Sprintf("_%d", knock.mqttID)
 	knock.mqttID++
 	w := c.Writer
 	r := c.Request
 
-	fmt.Println("Somebody has knocked. Timeout is ", knock.timeout, "s")
+	fmt.Println("Somebody has knocked. ID is ", knockID ," Timeout is ", knock.timeout, "s")
 
 	// Set up a websocket connection with the client.
 	conn, err := wsUpgrader.Upgrade(w, r, nil)
@@ -92,7 +100,7 @@ func (knock Knock) createMQTTClient(conn *websocket.Conn, knockEvent KnockEvent)
 		fmt.Printf("/knock Received message \"%s\" from topic \"%s\"\n", msg.Payload(), msg.Topic())
 		// The only use the server has is listening for an ack from a
 		// device.
-		if msg.Topic() == "letmein2/ack" && string(msg.Payload()) != "nvm" {
+		if msg.Topic() == "letmein2/ack" && string(msg.Payload()) != "nvm" && string(msg.Payload()) != "timeout" {
 			// TODO (willnilges): Give location of acknowledging device.
             knockEvent.Event = "ACKNOWLEDGE"
             knockEvent.CurrentTime = 0;
@@ -116,14 +124,13 @@ func (knock Knock) createMQTTClient(conn *websocket.Conn, knockEvent KnockEvent)
 	return
 }
 
-// TODO (willnilges): Structured logging into Datadog
-
-var wsUpgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+func mqttSubTopic(client mqtt.Client, handler mqtt.MessageHandler, topic string) {
+	token := client.Subscribe(topic, 1, handler)
+	token.Wait()
+	fmt.Printf("Subscribed to topic %s\n", topic)
 }
 
-// kinda just hoping this can do everything
+
 type KnockEventInterface interface {
     doCountdown()
     readClientMsg()
@@ -137,12 +144,6 @@ type KnockEvent struct {
     MaxTime     int
     Name        string
     Location    string
-}
-
-func mqttSubTopic(client mqtt.Client, handler mqtt.MessageHandler, topic string) {
-	token := client.Subscribe(topic, 1, handler)
-	token.Wait()
-	fmt.Printf("Subscribed to topic %s\n", topic)
 }
 
 func (knockEvent KnockEvent) doCountdown(wsConn *websocket.Conn, mqttClient mqtt.Client, timeout int) {
