@@ -38,18 +38,13 @@ def main():
 
     app = LMIApp(buzz, mqtt_client)
 
-    # Connect callback handlers to mqtt_client. Mostly for debugging.
-    # mqtt_client.on_connect = connect
-    # mqtt_client.on_disconnect = disconnect
-    # mqtt_client.on_subscribe = subscribe
-    # mqtt_client.on_unsubscribe = unsubscribe
-    # mqtt_client.on_publish = publish
     mqtt_client.on_message = message
 
     print("Attempting to connect to %s" % mqtt_client.broker)
     mqtt_client.connect()
     mqtt_client.subscribe(mqtt_req_topic)
     mqtt_client.subscribe(mqtt_ack_topic)
+    mqtt_client.subscribe(mqtt_nvm_topic)
 
     asynccp.schedule(frequency=10, coroutine_function=app.check_ack)
     asynccp.schedule(frequency=10, coroutine_function=app.check_req)
@@ -63,33 +58,6 @@ def main():
     buzz.jingle_ready()
 
     asynccp.run()
-
-# MQTT callbacks (Mostly for debugging)
-'''
-# pylint: disable=unused-argument, redefined-outer-name
-def connect(mqtt_client, userdata, flags, rc):
-    # This function will be called when the mqtt_client is connected
-    # successfully to the broker.
-    print("Connected to MQTT Broker!")
-    print("Flags: {0}\n RC: {1}".format(flags, rc))
-
-# This method is called when the mqtt_client disconnects
-# from the broker.
-def disconnect(mqtt_client, userdata, rc):
-    print("Disconnected from MQTT Broker!")
-
-# This method is called when the mqtt_client subscribes to a new feed.
-def subscribe(mqtt_client, userdata, topic, granted_qos):
-    print("Subscribed to {0} with QOS level {1}".format(topic, granted_qos))
-
-# This method is called when the mqtt_client unsubscribes from a feed.
-def unsubscribe(mqtt_client, userdata, topic, pid):
-    print("Unsubscribed from {0} with PID {1}".format(topic, pid))
-
-# This method is called when the mqtt_client publishes data to a feed.
-def publish(mqtt_client, userdata, topic, pid):
-    print("Published to {0} with PID {1}".format(topic, pid))
-'''
 
 def message(client, topic, message):
     # Method called when a client's subscribed feed has a new value.
@@ -114,15 +82,15 @@ def message(client, topic, message):
     elif topic == mqtt_nvm_topic:
         # TODO: Set up some kind of configurable dingus for this (and other)
         # location-based trees
-        if message == "level_a":
+        if "level_a" in message:
             level_a.value = 0
-        elif message == "level_1":
+        elif "level_1" in message:
             level_1.value = 0
-        elif message == "s_stairs":
+        elif "s_stairs" in message:
             s_stairs.value = 0
-        elif message == "n_stairs":
+        elif "n_stairs" in message:
             n_stairs.value = 0
-        elif message == "l_well":
+        elif "l_well" in message:
             l_well.value = 0
 
 if __name__ == '__main__':
