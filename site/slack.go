@@ -42,7 +42,6 @@ func (bot SlackBot) sendKnock(username string, location string) {
         Text: "Chom from LetMeIn2",
     }*/
 
-    // TODO: Change the channel back to bot.channelID
     request := fmt.Sprintf("*%s* is requesting entry at *%s*", username, location);
     channelID, timestamp, err := bot.api.PostMessage(
         bot.channelID,
