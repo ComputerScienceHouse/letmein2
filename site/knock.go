@@ -49,6 +49,14 @@ var wsUpgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+type KnockEvent struct {
+    Event string
+    CurrentTime int
+    MaxTime int
+    Name    string
+    Location string
+}
+
 type KnockObject struct {
 	Event       string
 	CurrentTime int

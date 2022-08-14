@@ -43,10 +43,9 @@ func (bot SlackBot) sendKnock(username string, location string) {
     }*/
 
     // TODO: Change the channel back to bot.channelID
-    // botspam: C06HLL9CL
     request := fmt.Sprintf("*%s* is requesting entry at *%s*", username, location);
     channelID, timestamp, err := bot.api.PostMessage(
-        "C06HLL9CL",
+        bot.channelID,
         slack.MsgOptionText(request, false),
         slack.MsgOptionAsUser(true),
     )
