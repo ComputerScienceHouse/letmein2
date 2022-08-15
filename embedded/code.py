@@ -1,15 +1,19 @@
-import time, gc, os, board, tinys2, digitalio, wifi, socketpool, ssl
+import gc, os, board, tinys2, digitalio, wifi, socketpool, ssl
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
+import asyncio
 from secrets import *
 from gpio import *
-from jingles import Jingle
 from art import *
-from LMIApp import LMIApp
 
-art_logo()
-art_mem_info()
+#from LMIApp import LMIApp
+
+from jingles import Jingle
+
+jingle = Jingle(board.IO4)
 
 def main():
+    art_logo()
+    art_mem_info()
     # Set location of this device
     location = secrets["location"]
     if location == '':
@@ -42,18 +46,22 @@ def main():
     # Jingle + ASCII art to let the user know the board is ready to go
     art_ready()
 
+    asyncio.run(my_loop(mqtt_client))
+
+async def my_loop(mqtt_client):
+    await jingle.ready()
     while True:
+        #await play_tune()
         mqtt_client.loop()
         print('chom')
         check_ack(mqtt_client)
-
 
 def check_ack(mqtt_client):
     if ack.value:
         mqtt_client.publish(mqtt_ack_topic, f"{secrets['location']}")
         all_off()
 
-def message(client, topic, message):
+async def message(client, topic, message):
     # Method called when a client's subscribed feed has a new value.
     print("New message on topic {0}: {1}".format(topic, message))
     if topic == mqtt_req_topic:
@@ -65,17 +73,20 @@ def message(client, topic, message):
             s_stairs.value = 1
         elif message == "n_stairs":
             n_stairs.value = 1
+            await jingle.n_stairs()
         elif message == "l_well":
             l_well.value = 1
     elif topic == mqtt_ack_topic:
         # FIXME (willnilges): The MQTT client is still subbed so it gets messages and turns on the lights, but then it just turns right back off. Should fix this. IDEA: Sub/Unsub.
         # TODO (willnilges): Perhaps a timeout topic would be nice.
+        jingle.buzzer.off()
         level_a.value = 0
         level_1.value = 0
         s_stairs.value = 0
         n_stairs.value = 0
         l_well.value = 0
     elif topic == mqtt_timeout_topic:
+        jingle.buzzer.off()
         if "level_a" in message:
             level_a.value = 0
         elif "level_1" in message:
@@ -89,6 +100,7 @@ def message(client, topic, message):
     elif topic == mqtt_nvm_topic:
         # TODO: Set up some kind of configurable dingus for this (and other)
         # location-based trees
+        jingle.buzzer.off()
         if "level_a" in message:
             level_a.value = 0
         elif "level_1" in message:
