@@ -4,10 +4,8 @@ import asyncio
 from secrets import *
 from gpio import *
 from art import *
-
-#from LMIApp import LMIApp
-
 from jingles import Jingle
+
 jingle = Jingle(board.IO4)
 
 def main():
@@ -72,11 +70,20 @@ async def check_ack(mqtt_client):
 async def check_jingle():
     while True:
         if jingle.buzzer.is_off():
-            #if level_a.value:
-            #    await jingle.level_a()
-            #    continue
+            if s_stairs.value:
+                await jingle.s_stairs()
+                continue
             if n_stairs.value:
                 await jingle.n_stairs()
+                continue
+            if level_a.value:
+                await jingle.level_a()
+                continue
+            if level_1.value:
+                await jingle.level_1()
+                continue
+            if l_well.value:
+                await jingle.l_well()
                 continue
         await asyncio.sleep(1)
 
