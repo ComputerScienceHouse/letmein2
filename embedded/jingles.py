@@ -1,4 +1,4 @@
-import asyncio
+import asyncio, time
 from buzzer import Buzzer
 
 class Jingle:
@@ -11,7 +11,15 @@ class Jingle:
         await asyncio.sleep(0.1)
         self.buzzer.note("F4")
         await asyncio.sleep(0.2)
-        self.off()
+        self.buzzer.off()
+
+    def boot_sync(self):
+        self.buzzer.on()
+        self.buzzer.note("C4")
+        time.sleep(0.1)
+        self.buzzer.note("F4")
+        time.sleep(0.2)
+        self.buzzer.off()
 
     async def ready(self):
         self.buzzer.on()

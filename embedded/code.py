@@ -1,14 +1,14 @@
 import gc, os, board, tinys2, digitalio, wifi, socketpool, ssl
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
-#import asyncio
+import asyncio
 from secrets import *
 from gpio import *
 from art import *
 
 #from LMIApp import LMIApp
 
-#from jingles import Jingle
-#jingle = Jingle(board.IO4)
+from jingles import Jingle
+jingle = Jingle(board.IO4)
 
 def main():
     art_logo()
@@ -18,6 +18,8 @@ def main():
     if location == '':
         print('Location not set! Please set location.')
         exit(1)
+
+    jingle.boot_sync()
 
     # ===== WIFI =====
     print(f'Connecting to {secrets["ssid"]}')
@@ -44,26 +46,25 @@ def main():
 
     # Jingle + ASCII art to let the user know the board is ready to go
     art_ready()
-    while True:
-        mqtt_client.loop()
-        check_ack(mqtt_client)
 
-    #asyncio.run(my_loop(mqtt_client))
+    asyncio.run(my_loop(mqtt_client))
 
-'''
 async def my_loop(mqtt_client):
     await jingle.ready()
     while True:
-        #await play_tune()
-        mqtt_client.loop()
-        print('chom')
         check_ack(mqtt_client)
-'''
+        mqtt_client.loop()
 
 def check_ack(mqtt_client):
     if ack.value:
         mqtt_client.publish(mqtt_ack_topic, f"{secrets['location']}")
         all_off()
+
+async def check_jingle():
+    if level_a.value:
+        await jingle.level_a()
+    if n_stairs.value:
+        await jingle.n_stairs()
 
 def message(client, topic, message):
     # Method called when a client's subscribed feed has a new value.
