@@ -10,6 +10,8 @@ from art import *
 from jingles import Jingle
 jingle = Jingle(board.IO4)
 
+is_playing = False
+
 def main():
     art_logo()
     art_mem_info()
@@ -54,6 +56,7 @@ async def my_loop(mqtt_client):
     while True:
         check_ack(mqtt_client)
         mqtt_client.loop()
+        is_playing = await check_jingle()
 
 def check_ack(mqtt_client):
     if ack.value:
@@ -61,10 +64,15 @@ def check_ack(mqtt_client):
         all_off()
 
 async def check_jingle():
-    if level_a.value:
-        await jingle.level_a()
-    if n_stairs.value:
-        await jingle.n_stairs()
+    print(f"Jingle playing: {is_playing}")
+    if not is_playing:
+        if level_a.value:
+            await jingle.level_a()
+            return True
+        if n_stairs.value:
+            await jingle.n_stairs()
+            return True
+        return False
 
 def message(client, topic, message):
     # Method called when a client's subscribed feed has a new value.
