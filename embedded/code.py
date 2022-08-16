@@ -44,21 +44,21 @@ def main():
     mqtt_client.subscribe(mqtt_nvm_topic)
     mqtt_client.subscribe(mqtt_timeout_topic)
 
-    # Jingle + ASCII art to let the user know the board is ready to go
-    art_ready()
-
     asyncio.run(my_loop(mqtt_client))
 
 async def my_loop(mqtt_client):
-    ready_task = asyncio.create_task(jingle.ready())
+    # Jingle + ASCII art to let the user know the board is ready to go
+    await jingle.ready()
+    art_ready()
     check_ack_task = asyncio.create_task(check_ack(mqtt_client))
     check_jingle_task = asyncio.create_task(check_jingle())
     check_mqtt_task = asyncio.create_task(check_mqtt(mqtt_client))
-    await asyncio.gather(check_ack_task, check_jingle_task, check_mqtt_task, ready_task)
+    await asyncio.gather(check_ack_task, check_jingle_task, check_mqtt_task)
 
 async def check_mqtt(mqtt_client):
     while True:
-        mqtt_client.loop()
+        if jingle.buzzer.is_off():
+            mqtt_client.loop()
         await asyncio.sleep(1)
 
 async def check_ack(mqtt_client):
@@ -74,10 +74,10 @@ async def check_jingle():
         if jingle.buzzer.is_off():
             #if level_a.value:
             #    await jingle.level_a()
-            #    return
+            #    continue
             if n_stairs.value:
                 await jingle.n_stairs()
-                return
+                continue
         await asyncio.sleep(1)
 
 def message(client, topic, message):
