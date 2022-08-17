@@ -16,8 +16,10 @@ class App:
 
     async def run(self):
         # Jingle + ASCII art to let the user know the board is ready to go
-        await self.jingle.play("ready.jingle")
-        light_show()
+        # Fancy :)
+        sound_ready_task = asyncio.create_task(self.jingle.play("ready.jingle"))
+        light_show_task = asyncio.create_task(light_show())
+        await asyncio.gather(sound_ready_task, light_show_task)
         art_ready()
         check_ack_task = asyncio.create_task(self.check_ack())
         check_jingle_task = asyncio.create_task(self.check_jingle())
