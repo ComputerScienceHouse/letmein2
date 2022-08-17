@@ -99,14 +99,12 @@ class App:
         elif topic == mqtt_nvm_topic:
             # TODO: Set up some kind of configurable dingus for this (and other)
             # location-based trees
-            print("got nvm!!!")
             self.jingle.buzzer.off()
             if "level_a" in message:
                 level_a.value = 0
             elif "level_1" in message:
                 level_1.value = 0
             elif "s_stairs" in message:
-                print("the nvm is for south stairs")
                 s_stairs.value = 0
             elif "n_stairs" in message:
                 n_stairs.value = 0
