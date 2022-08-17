@@ -53,9 +53,9 @@ class App:
                 elif level_a.value:
                     await self.jingle.play("level_a.jingle")
                 elif level_1.value:
-                    await self.jingle.play("level_1.jingle")
+                    await self.jingle.play("song_of_storms.jingle")
                 elif l_well.value:
-                    await self.jingle.play("l_well.jingle")
+                    await self.jingle.play("song_of_healing.jingle")
             await asyncio.sleep(1)
 
     # MQTT message handler
