@@ -43,6 +43,18 @@ class Jingle:
 
     async def s_stairs(self):
         self.buzzer.on()
+        self.buzzer.note("C5")
+        await asyncio.sleep(0.2)
+        self.buzzer.note("F4")
+        await asyncio.sleep(1.0)
+        self.buzzer.note("C5")
+        await asyncio.sleep(0.2)
+        self.buzzer.note("F4")
+        await asyncio.sleep(0.2)
+        self.buzzer.note("G4")
+        await asyncio.sleep(1.0)
+        self.buzzer.note("C5")
+        await asyncio.sleep(2.0)
         self.buzzer.off()
 
     async def n_stairs(self):
@@ -70,13 +82,45 @@ class Jingle:
 
     async def level_a(self):
         self.buzzer.on()
+        for i in range(0, 3):
+            self.buzzer.hz(659)
+            await asyncio.sleep(0.1)
+            self.buzzer.hz(587)
+            await asyncio.sleep(0.1)
+            self.buzzer.note("C4")
+            await asyncio.sleep(0.3)
+        self.buzzer.note("C4")
+        await asyncio.sleep(0.3)
+        self.buzzer.note("D4")
+        await asyncio.sleep(0.5)
         self.buzzer.off()
 
     async def level_1(self):
         self.buzzer.on()
+        for i in range(0,2):
+            self.buzzer.note("E4")
+            await asyncio.sleep(0.1)
+            self.buzzer.hz(800)
+            await asyncio.sleep(0.5)
+            self.buzzer.note("D4")
+            await asyncio.sleep(0.1)
+        self.buzzer.hz(1200)
+        await asyncio.sleep(0.5)
         self.buzzer.off()
 
     async def l_well(self):
         self.buzzer.on()
+        self.buzzer.note("A4")
+        await asyncio.sleep(0.3)
+        self.buzzer.note("B4")
+        await asyncio.sleep(0.5)
+        self.buzzer.note("A4")
+        await asyncio.sleep(0.5)
+        self.buzzer.note("E4")
+        await asyncio.sleep(0.5)
+        self.buzzer.note("B4")
+        await asyncio.sleep(0.5)
+        self.buzzer.hz(1000)
+        await asyncio.sleep(0.5)
         self.buzzer.off()
 
