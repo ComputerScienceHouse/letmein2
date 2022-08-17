@@ -58,7 +58,6 @@ class App:
                     # Scale the counter to seconds (since the counter counts down once per second-ish)
                     # FIXME (willnilges): I think each tick is a bit longer than a second so keep that
                     # in mind when you're setting duration 
-                    print(stfu_duration_minutes * 60)
                     self.stfu_counter = stfu_duration_minutes * 60
                     self.mqtt_client.unsubscribe(mqtt_req_topic)
                 # We're gonna use the LED to keep track of the status b/c we're goblins.
@@ -70,7 +69,6 @@ class App:
             if led_stfu.value:
                 if self.stfu_counter > 0:
                     self.stfu_counter -= 1
-                    print(f"SHUT THE FUCK UP MODE = {led_stfu.value}")
                     print(f"stfu_counter = {self.stfu_counter}")
                 else:
                     led_stfu.value = 0
