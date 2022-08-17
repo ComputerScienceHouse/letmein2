@@ -25,7 +25,7 @@ class Jingle:
         with open(file) as jingle_file:
             self.buzzer.on()
             for action in jingle_file:
-                action_split = action.split(' ', 1)
+                action_split = action.split('#', 1)[0].split(' ', 1)
                 note = action_split[0]
                 duration = float(action_split[1])
                 # FIXME (willnilges): This code is probably slow.
