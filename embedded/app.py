@@ -51,9 +51,9 @@ class App:
                 elif n_stairs.value:
                     await self.jingle.play("n_stairs.jingle")
                 elif level_a.value:
-                    await self.jingle.level_a()
+                    await self.jingle.play("level_a.jingle")
                 elif level_1.value:
-                    await self.jingle.level_1()
+                    await self.jingle.play("level_1.jingle")
                 elif l_well.value:
                     await self.jingle.l_well()
             await asyncio.sleep(1)

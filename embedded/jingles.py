@@ -45,34 +45,6 @@ class Jingle:
                     await asyncio.sleep(duration)
             self.buzzer.off()
 
-    async def level_a(self):
-        self.buzzer.on()
-        for i in range(0, 3):
-            self.buzzer.hz(659)
-            await asyncio.sleep(0.1)
-            self.buzzer.hz(587)
-            await asyncio.sleep(0.1)
-            self.buzzer.note("C4")
-            await asyncio.sleep(0.3)
-        self.buzzer.note("C4")
-        await asyncio.sleep(0.3)
-        self.buzzer.note("F4")
-        await asyncio.sleep(0.5)
-        self.buzzer.off()
-
-    async def level_1(self):
-        self.buzzer.on()
-        for i in range(0,2):
-            self.buzzer.note("E4")
-            await asyncio.sleep(0.1)
-            self.buzzer.hz(800)
-            await asyncio.sleep(0.5)
-            self.buzzer.note("D4")
-            await asyncio.sleep(0.1)
-        self.buzzer.hz(1200)
-        await asyncio.sleep(0.5)
-        self.buzzer.off()
-
     async def l_well(self):
         self.buzzer.on()
         self.buzzer.note("A4")
