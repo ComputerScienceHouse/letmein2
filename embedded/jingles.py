@@ -45,29 +45,6 @@ class Jingle:
                     await asyncio.sleep(duration)
             self.buzzer.off()
 
-    async def n_stairs(self):
-        self.buzzer.on()
-        for x in range(0, 2):
-            self.buzzer.note("C4")
-            await asyncio.sleep(0.2)
-            self.buzzer.note("F4")
-            await asyncio.sleep(0.2)
-            self.buzzer.note("C4")
-            await asyncio.sleep(0.2)
-            self.buzzer.note("A4")
-            await asyncio.sleep(0.2)
-        self.buzzer.note("C5")
-        await asyncio.sleep(0.4)
-        self.buzzer.note("B4")
-        await asyncio.sleep(0.1)
-        self.buzzer.note("A4")
-        await asyncio.sleep(0.1)
-        self.buzzer.note("G4")
-        await asyncio.sleep(0.1)
-        self.buzzer.note("F4")
-        await asyncio.sleep(0.2)
-        self.buzzer.off()
-
     async def level_a(self):
         self.buzzer.on()
         for i in range(0, 3):

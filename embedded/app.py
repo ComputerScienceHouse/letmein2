@@ -49,7 +49,7 @@ class App:
                     await self.jingle.play("s_stairs.jingle")
                     continue
                 elif n_stairs.value:
-                    await self.jingle.n_stairs()
+                    await self.jingle.play("n_stairs.jingle")
                 elif level_a.value:
                     await self.jingle.level_a()
                 elif level_1.value:
