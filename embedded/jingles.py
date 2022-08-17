@@ -22,12 +22,12 @@ class Jingle:
         self.buzzer.off()
 
     async def play(self, file):
-        with open file as jingle_file:
+        with open(file) as jingle_file:
             self.buzzer.on()
             for action in jingle_file:
                 action_split = action.split(' ', 1)
                 note = action_split[0]
-                duration = int(action_split[1])
+                duration = float(action_split[1])
                 # FIXME (willnilges): This code is probably slow.
                 if "rest" in note:
                     # Turn off the buzzer for a specified period
