@@ -46,7 +46,7 @@ class App:
                 # another higher up on this list lights up, it'll switch songs
                 # to the new light. 
                 if s_stairs.value:
-                    await self.jingle.s_stairs()
+                    await self.jingle.play("s_stairs.jingle")
                     continue
                 elif n_stairs.value:
                     await self.jingle.n_stairs()
