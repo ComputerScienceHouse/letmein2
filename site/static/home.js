@@ -32,7 +32,7 @@ function knockSocket(location) {
 
   ws.onopen = function(){
     console.log("Connected to websocket :)")
-    let namePayload = JSON.stringify({"Event": "NAME", "name": nameInput.value, "location": location});
+    let namePayload = JSON.stringify({"Event": "NAME", "Name": nameInput.value, "Location": location});
     ws.send(namePayload);
     resetRequestModal();
     // openRequestModal();
@@ -58,7 +58,8 @@ function knockSocket(location) {
 }
 
 function socketNevermind(ws, location) {
-  let nvmPayload = JSON.stringify({Event: "NEVERMIND", location: location})
+  let nvmPayload = JSON.stringify({"Event": "NEVERMIND", "Location": location});
+  console.log(nvmPayload);
   ws.send(nvmPayload);
   requestNvmAlert.hidden = false;
   timeoutDiv.hidden = true;

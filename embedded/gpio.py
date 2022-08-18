@@ -1,4 +1,5 @@
 import board, digitalio, time
+import asyncio
 
 s_stairs = digitalio.DigitalInOut(board.IO0)
 n_stairs = digitalio.DigitalInOut(board.IO18)
@@ -24,46 +25,48 @@ stfu.pull = digitalio.Pull.DOWN
 led_stfu = digitalio.DigitalInOut(board.IO36)
 led_stfu.direction = digitalio.Direction.OUTPUT
 
-def light_show():
+async def light_show():
+    # Flash all the lights to show the idiot is on
+    # Making this async is probably excessive
     all_off()
     s_stairs.value = 1
-    time.sleep(0.1)
+    await asyncio.sleep(0.1)
 
     all_off()
     n_stairs.value = 1
-    time.sleep(0.1)
+    await asyncio.sleep(0.1)
 
     all_off()
     level_a.value = 1
-    time.sleep(0.1)
+    await asyncio.sleep(0.1)
 
     all_off()
     level_1.value = 1
-    time.sleep(0.1)
+    await asyncio.sleep(0.1)
 
     all_off()
     l_well.value = 1
-    time.sleep(0.1)
+    await asyncio.sleep(0.1)
 
     all_off()
     l_well.value = 1
-    time.sleep(0.1)
+    await asyncio.sleep(0.1)
 
     all_off()
     level_1.value = 1
-    time.sleep(0.1)
+    await asyncio.sleep(0.1)
 
     all_off()
     level_a.value = 1
-    time.sleep(0.1)
+    await asyncio.sleep(0.1)
 
     all_off()
     n_stairs.value = 1
-    time.sleep(0.1)
+    await asyncio.sleep(0.1)
 
     all_off()
     s_stairs.value = 1
-    time.sleep(0.1)
+    await asyncio.sleep(0.1)
 
     all_off()
 

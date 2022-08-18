@@ -1,116 +1,41 @@
-import pulseio
-import asynccp
-import time
+import asyncio, time
 from buzzer import Buzzer
 
-class Jingle(Buzzer):
-    def jingle_boot(self):
-        self.on()
-        self.note("C4")
+class Jingle:
+    def __init__(self, pin):
+        self.buzzer = Buzzer(pin)
+
+    # Big sad, can't use async play on sync functions like main()
+    # probably for the best...
+    def boot_sync(self):
+        self.buzzer.on()
+        self.buzzer.note("C4")
         time.sleep(0.1)
-        self.note("F4")
+        self.buzzer.note("F4")
         time.sleep(0.2)
-        self.off()
+        self.buzzer.off()
 
-    def jingle_ready(self):
-        self.on()
-        self.note("C4")
-        time.sleep(0.1)
-        self.note("D4")
-        time.sleep(0.1)
-        self.note("E4")
-        time.sleep(0.1)
-        self.note("F4")
-        time.sleep(0.1)
-        self.note("G4")
-        time.sleep(0.1)
-        self.note("A4")
-        time.sleep(0.1)
-        self.note("B4")
-        time.sleep(0.1)
-        self.note("C5")
-        time.sleep(0.2)
-        self.off()
+    async def play(self, file):
+        with open(file) as jingle_file:
+            self.buzzer.on()
+            for action in jingle_file:
+                action_split = action.split('#', 1)[0].split(' ', 1)
+                note = action_split[0]
+                duration = float(action_split[1])
+                # FIXME (willnilges): This code is probably slow.
+                if "rest" in note:
+                    # Turn off the buzzer for a specified period
+                    self.buzzer.off()
+                    time.sleep(duration)
+                    self.buzzer.on()
+                elif note.isdigit():
+                    # Try playing as hz    
+                    hz = int(note)
+                    self.buzzer.hz(hz)
+                    await asyncio.sleep(duration)
+                else:
+                    # play a specified note
+                    self.buzzer.note(note)
+                    await asyncio.sleep(duration)
+            self.buzzer.off()
 
-    async def jingle_s_stairs(self):
-        self.on()
-        self.note("C5")
-        await asynccp.delay(0.2)
-        self.note("F4")
-        await asynccp.delay(1.0)
-        self.note("C5")
-        await asynccp.delay(0.2)
-        self.note("F4")
-        await asynccp.delay(0.2)
-        self.note("G4")
-        await asynccp.delay(1.0)
-        self.note("C5")
-        await asynccp.delay(2.0)
-        self.off()
-
-    async def jingle_n_stairs(self):
-        self.on()
-        for x in range(0, 2):
-            self.note("C4")
-            await asynccp.delay(0.2)
-            self.note("F4")
-            await asynccp.delay(0.2)
-            self.note("C4")
-            await asynccp.delay(0.2)
-            self.note("A4")
-            await asynccp.delay(0.2)
-        self.note("C5")
-        await asynccp.delay(0.4)
-        self.note("B4")
-        await asynccp.delay(0.1)
-        self.note("A4")
-        await asynccp.delay(0.1)
-        self.note("G4")
-        await asynccp.delay(0.1)
-        self.note("F4")
-        await asynccp.delay(0.2)
-        self.off()
-
-    async def jingle_level_a(self):
-        self.on()
-        for i in range(0, 3):
-            self.hz(659)
-            await asynccp.delay(0.1)
-            self.hz(587)
-            await asynccp.delay(0.1)
-            self.note("C4")
-            await asynccp.delay(0.3)
-        self.note("C4")
-        await asynccp.delay(0.3)
-        self.note("D4")
-        await asynccp.delay(0.5)
-        self.off()
-
-    async def jingle_level_1(self):
-        self.on()
-        for i in range(0,2):
-            self.note("E4")
-            await asynccp.delay(0.1)
-            self.hz(800)
-            await asynccp.delay(0.5)
-            self.note("D4")
-            await asynccp.delay(0.1)
-        self.hz(1200)
-        await asynccp.delay(0.5)
-        self.off()
-
-    async def jingle_l_well(self):
-        self.on()
-        self.note("A4")
-        await asynccp.delay(0.3)
-        self.note("B4")
-        await asynccp.delay(0.5)
-        self.note("A4")
-        await asynccp.delay(0.5)
-        self.note("E4")
-        await asynccp.delay(0.5)
-        self.note("B4")
-        await asynccp.delay(0.5)
-        self.hz(1000)
-        await asynccp.delay(0.5)
-        self.off()

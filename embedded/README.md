@@ -13,10 +13,24 @@ You'll need the following to get the board to run
 <!-- - [`asyncio`]() -->
 <!-- - [`simpleio`]() -->
 
+You might also be able to find libraries [here](https://circuitpython.org/libraries)
+
 ## Installation
 - Plug in the client, drag and drop all python files over to it.
 - Fetch the libs and place them in a directory called 'lib' on the device
 - Copy the `secrets.py.template` file over to the device and fill it out appropriately.
+
+## Update
+
+1. Download stable CircuitPython from [here](https://circuitpython.org/board/unexpectedmaker_tinys2/). You want the .UF2
+
+2. Plug in the client, press `RESET`, then _very_ quickly press `BOOT`.
+
+3. A new drive will appear on your computer. Drag the .UF2 file you downloaded onto that drive.
+
+4. Wait a few moments. The device will flash a whole bunch, then eventually reboot and begin running CircuitPython again.
+
+5. Profit
 
 ## Developing
 

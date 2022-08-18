@@ -1,8 +1,6 @@
-import pulseio
-import asynccp
-import time
+import pwmio
 
-from jingles import *
+# from jingles import *
 
 class Buzzer:
     # IDK where that 32768 number comes from. Probably a clock cycle or some shit.
@@ -11,18 +9,19 @@ class Buzzer:
 
     # Define a list of tones/music notes to play.
     tone = {
-        "C4" : 262,# - 0
-        "D4" : 294,# - 1
-        "E4" : 330,# - 2
-        "F4" : 349,# - 3
-        "G4" : 392,# - 4
-        "A4" : 440,# - 5
-        "B4" : 494,# - 6
-        "C5" : 530,# - 7
+        "C4"  : 262,
+        "D4"  : 294,
+        "Ds4" : 311,
+        "E4"  : 330,
+        "F4"  : 349,
+        "G4"  : 392,
+        "A4"  : 440,
+        "B4"  : 494,
+        "C5"  : 530,
     }
 
     def __init__(self, io_pin):
-        self.buzzer = pulseio.PWMOut(io_pin, variable_frequency=True)
+        self.buzzer = pwmio.PWMOut(io_pin, variable_frequency=True)
 
     def is_on(self):
         return self.buzzer.duty_cycle == self.speaker_on
