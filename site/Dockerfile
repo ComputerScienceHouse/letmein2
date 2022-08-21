@@ -12,6 +12,6 @@ WORKDIR /
 
 COPY --from=builder /build/letmein2 .
 #RUN mkdir /templates /static
-COPY ./templates ./templates
-COPY ./static ./static
+COPY ./site/templates ./templates
+COPY ./site/static ./static
 ENTRYPOINT ["./letmein2"]
