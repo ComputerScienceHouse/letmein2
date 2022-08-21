@@ -28,7 +28,7 @@ function homePageSetup() {
 
 function knockSocket(location) {
   host = window.location.host;
-  url = `ws://${host}/knock/socket/${location}`;
+  url = `wss://${host}/knock/socket/${location}`;
   ws = new WebSocket(url);
 
   ws.onopen = function(){
