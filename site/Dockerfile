@@ -1,14 +1,14 @@
 FROM golang as builder
 
 WORKDIR /build
-COPY * . 
+COPY go.mod go.sum *.go . 
 #RUN go mod tidy
 RUN go get -d .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o letmein2 .
 
-WORKDIR /
+FROM alpine:latest
 
-RUN mv /build/letmein2 .
+COPY --from=builder /build/letmein2 .
 RUN mkdir /templates /static
 COPY ./templates /templates
 COPY ./static /static
