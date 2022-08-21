@@ -1,7 +1,7 @@
 FROM golang as builder
 
 WORKDIR /build
-COPY go.mod go.sum *.go . 
+COPY * . 
 #RUN go mod tidy
 RUN go get -d .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o letmein2 .
