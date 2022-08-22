@@ -34,7 +34,7 @@ function knockSocket(location) {
     return;
   }
   host = window.location.host;
-  url = `ws://${host}/knock/socket/${location}`;
+  url = `wss://${host}/knock/socket/${location}`;
   ws = new WebSocket(url);
 
   ws.onopen = function(){
