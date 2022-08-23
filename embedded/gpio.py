@@ -25,6 +25,10 @@ stfu.pull = digitalio.Pull.DOWN
 led_stfu = digitalio.DigitalInOut(board.IO36)
 led_stfu.direction = digitalio.Direction.OUTPUT
 
+# For the pencil sharpener
+pencil = digitalio.DigitalInOut(board.IO37)
+pencil.direction = digitalio.Direction.OUTPUT
+
 async def light_show():
     # Flash all the lights to show the idiot is on
     # Making this async is probably excessive
@@ -76,3 +80,4 @@ def all_off():
     level_a.value = 0
     level_1.value = 0
     l_well.value = 0
+    pencil.value = 0

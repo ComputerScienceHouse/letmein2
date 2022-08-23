@@ -59,7 +59,7 @@ class App:
                 else:
                     # Scale the counter to seconds (since the counter counts down once per second-ish)
                     # FIXME (willnilges): I think each tick is a bit longer than a second so keep that
-                    # in mind when you're setting duration 
+                    # in mind when you're setting duration
                     self.stfu_counter = stfu_duration_minutes * 60
                     self.mqtt_client.unsubscribe(mqtt_req_topic)
                 # We're gonna use the LED to keep track of the status b/c we're goblins.
@@ -83,7 +83,7 @@ class App:
             if self.jingle.buzzer.is_off():
                 # Probably has a bug: If one light is playing its jingle, then
                 # another higher up on this list lights up, it'll switch songs
-                # to the new light. 
+                # to the new light.
                 if s_stairs.value:
                     await self.jingle.play("s_stairs.jingle")
                 elif n_stairs.value:
@@ -101,6 +101,7 @@ class App:
         # Method called when a client's subscribed feed has a new value.
         print("New message on topic {0}: {1}".format(topic, message))
         if topic == mqtt_req_topic:
+            pencil.value = 1
             if message == "level_a":
                 level_a.value = 1
             elif message == "level_1":
@@ -120,6 +121,7 @@ class App:
             all_off()
         elif topic == mqtt_timeout_topic:
             self.jingle.buzzer.off()
+            pencil.value = 0
             if "level_a" in message:
                 level_a.value = 0
             elif "level_1" in message:
@@ -134,6 +136,7 @@ class App:
             # TODO: Set up some kind of configurable dingus for this (and other)
             # location-based trees
             self.jingle.buzzer.off()
+            pencil.value = 0
             if "level_a" in message:
                 level_a.value = 0
             elif "level_1" in message:
