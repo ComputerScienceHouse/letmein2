@@ -39,9 +39,9 @@ function knockSocket(location) {
   if (location.protocol !== 'https:') {
     socketProtocol = 'ws';
   }
-  host = window.location.host;
-  url = `${socketProtocol}://${host}/knock/socket/${location}`;
-  ws = new WebSocket(url);
+  let host = window.location.host;
+  let url = `${socketProtocol}://${host}/knock/socket/${location}`;
+  const ws = new WebSocket(url);
 
   ws.onopen = function(){
     console.log("Connected to websocket :)")
@@ -55,7 +55,7 @@ function knockSocket(location) {
   }
 
   ws.onmessage = function(msg) {
-    data = JSON.parse(msg.data);
+    let data = JSON.parse(msg.data);
     console.log(data)
     if (data.Event === "LOCATION") {
       requestTitle.innerText = "Requesting Access at " + data.Location
