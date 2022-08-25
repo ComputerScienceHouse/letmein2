@@ -64,6 +64,7 @@
           <div class="modal-content">
             <div class="modal-header" id="request_modal_header">
               <h5 class="modal-title" id="request_modal_title">Requesting access at: {{ .location }}</h5>
+              <h5 class="modal-title" id="nameless_title">Wait! Who are you!?</h5>
               <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button> -->
@@ -73,6 +74,11 @@
                     <!-- <button type="button" class="close" data-dismiss="alert">&times;</button> -->
                     <strong>Request answered</strong>
                     <p>Sit tight! Someone is coming to let you in.</p>
+                </div>
+                <div class="alert alert-danger" id="request_nameless_alert" style="margin-bottom: 0px;">
+                    <!-- <button type="button" class="close" data-dismiss="alert">&times;</button> -->
+                    <strong>Please enter your name!</strong>
+                    <p>"We got no names, we are <em>nameless</em>, man!"</p>
                 </div>
                 <div class="alert alert-danger" id="request_timeout_alert" style="margin-bottom: 0px;">
                     <!-- <button type="button" class="close" data-dismiss="alert">&times;</button> -->

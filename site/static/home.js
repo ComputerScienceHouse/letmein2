@@ -8,10 +8,12 @@ const cancelLink = document.getElementById("request_modal_cancel_button");
 const timeoutCounter = document.getElementById("timeout_counter");
 const timeoutBar = document.getElementById("timeout_bar");
 const requestTimeoutAlert = document.getElementById("request_timeout_alert");
+const requestNamelessAlert = document.getElementById("request_nameless_alert");
 const requestAnswerAlert = document.getElementById("request_answer_alert");
 const requestNvmAlert = document.getElementById("request_nvm_alert");
 const timeoutDiv = document.getElementById("timeout_div");
 const requestTitle = document.getElementById("request_modal_title");
+const namelessTitle = document.getElementById("nameless_title");
 
 // TODO: This feels janky.
 // Sets up the event listeners for the various doors specified by the
@@ -27,8 +29,18 @@ function homePageSetup() {
 }
 
 function knockSocket(location) {
+  if (nameInput.value === "") {
+    displayNameless();
+    return;
+  }
+  console.log(location.protocol);
+  // If we're http, then we'll use an unencrypted websocket (for development)
+  let socketProtocol = 'wss';
+  if (location.protocol !== 'https:') {
+    socketProtocol = 'ws';
+  }
   host = window.location.host;
-  url = `wss://${host}/knock/socket/${location}`;
+  url = `${socketProtocol}://${host}/knock/socket/${location}`;
   ws = new WebSocket(url);
 
   ws.onopen = function(){
@@ -70,6 +82,7 @@ function socketNevermind(ws, location) {
 
 function displayAcknowledge() {
   requestAnswerAlert.hidden = false;
+  requestNamelessAlert.hidden = true;
   timeoutDiv.hidden = true;
   homeLink.hidden = false;
   cancelLink.hidden = true;
@@ -79,6 +92,21 @@ function displayTimeout() {
   timeoutCounter.hidden = true;
   timeoutBar.hidden = true;
   requestTimeoutAlert.hidden = false;
+  requestNamelessAlert.hidden = true;
+  timeoutDiv.hidden = true;
+  homeLink.hidden = false;
+  cancelLink.hidden = true;
+}
+
+function displayNameless() {
+  requestTitle.hidden = true;
+  namelessTitle.hidden = false;
+  timeoutCounter.hidden = true;
+  timeoutBar.hidden = true;
+  requestTimeoutAlert.hidden = true;
+  requestAnswerAlert.hidden = true;
+  requestNvmAlert.hidden = true;
+  requestNamelessAlert.hidden = false;
   timeoutDiv.hidden = true;
   homeLink.hidden = false;
   cancelLink.hidden = true;
@@ -96,13 +124,15 @@ function resetRequestModal() {
   // Stuff that should be hidden
   homeLink.hidden = true;
   requestTimeoutAlert.hidden = true;
+  requestNamelessAlert.hidden = true;
   requestAnswerAlert.hidden = true;
   requestNvmAlert.hidden = true;
+  namelessTitle.hidden = true;
 
   // Stuff that should not be hidden
   cancelLink.hidden = false;
   timeoutDiv.hidden = false;
-
+  requestTitle.hidden = false;
   timeoutCounter.hidden = false;
   timeoutBar.hidden = false;
 
