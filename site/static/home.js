@@ -41,6 +41,7 @@ function knockSocket(location) {
   }
   let host = window.location.host;
   let url = `${socketProtocol}://${host}/knock/socket/${location}`;
+  console.log(url);
   const ws = new WebSocket(url);
 
   ws.onopen = function(){
