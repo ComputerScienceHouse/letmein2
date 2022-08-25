@@ -85,15 +85,15 @@ class App:
                 # another higher up on this list lights up, it'll switch songs
                 # to the new light.
                 if s_stairs.value:
-                    await self.jingle.play("s_stairs.jingle")
+                    await self.jingle.play(jingle_s_stairs)
                 elif n_stairs.value:
-                    await self.jingle.play("n_stairs.jingle")
+                    await self.jingle.play(jingle_n_stairs)
                 elif level_a.value:
-                    await self.jingle.play("level_a.jingle")
+                    await self.jingle.play(jingle_level_a)
                 elif level_1.value:
-                    await self.jingle.play("song_of_storms.jingle") # level_1
+                    await self.jingle.play(jingle_level_1)
                 elif l_well.value:
-                    await self.jingle.play("song_of_healing.jingle") # l_well
+                    await self.jingle.play(jingle_l_well)
             await asyncio.sleep(1)
 
     # MQTT message handler

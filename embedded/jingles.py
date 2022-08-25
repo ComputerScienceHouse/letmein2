@@ -16,7 +16,7 @@ class Jingle:
         self.buzzer.off()
 
     async def play(self, file):
-        with open(file) as jingle_file:
+        with open(f"jingles/file") as jingle_file:
             self.buzzer.on()
             for action in jingle_file:
                 action_split = action.split('#', 1)[0].split(' ', 1)
@@ -29,7 +29,7 @@ class Jingle:
                     time.sleep(duration)
                     self.buzzer.on()
                 elif note.isdigit():
-                    # Try playing as hz    
+                    # Try playing as hz
                     hz = int(note)
                     self.buzzer.hz(hz)
                     await asyncio.sleep(duration)
