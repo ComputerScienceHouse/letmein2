@@ -8,7 +8,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -o letmein2 .
 
 FROM alpine:latest
 
-WORKDIR site
+WORKDIR /
 
 COPY --from=builder /build/letmein2 .
 #RUN mkdir /templates /static

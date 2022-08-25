@@ -1,3 +1,4 @@
 #!/bin/bash
 set -e
-podman build . --tag=letmein-site
+cd .. # Hack to make OKDeez happy
+podman build ./site/ --tag=letmein-site
