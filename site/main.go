@@ -67,10 +67,9 @@ func main() {
 	r.LoadHTMLGlob(lmiTemplates)
 	r.Static("/static", lmiStatic)
 
-    bot := NewSlackBot(oauthToken, channelID)
-    knock := Knock{bot, 0, broker, portNumber, timeoutPeriod}
-
 	// ===== Route definitions =====
+	bot := NewSlackBot(oauthToken, channelID)
+	knock := Knock{bot, 100000, broker, portNumber, timeoutPeriod}
 
 	// Homepage
 	r.GET("/", func(c *gin.Context) {
@@ -81,5 +80,6 @@ func main() {
 
 	r.GET("/knock/socket/:location", knock.handler)
 
+	r.POST("/actions", buttonHandler)
 	r.Run()
 }
