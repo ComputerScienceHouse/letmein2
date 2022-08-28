@@ -35,7 +35,7 @@ function knockSocket(location) {
   }
   // If we're http, then we'll use an unencrypted websocket (for development)
   let socketProtocol = 'wss';
-  if (window.location.href.indexOf('https:') === -1) {
+  if (window.location.protocol === 'http:') {
     socketProtocol = 'ws';
   }
   let host = window.location.host;
