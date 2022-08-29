@@ -2,7 +2,7 @@
 
 <!-- <img src="https://csh.rit.edu/~wilnil/storage/of-ohioan-descent.svg" alt="ohio badge" height="30px"/>  -->
 
-<img src="https://forthebadge.com/images/badges/0-percent-optimized.svg" alt="0 badge" height="30px"/> <img src="https://forthebadge.com/images/badges/made-with-go.svg" alt="GO badge" height="30px"/> <img src="https://forthebadge.com/images/badges/made-with-python.svg" alt="Python badge" height="30px"/>
+<img src="https://forthebadge.com/images/badges/made-with-go.svg" alt="GO badge" height="30px"/> <img src="https://forthebadge.com/images/badges/made-with-python.svg" alt="Python badge" height="30px"/>
 
 Original Project: https://github.com/nfatkhiyev/letMeIn/
 
