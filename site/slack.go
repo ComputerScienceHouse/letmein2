@@ -1,13 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
-	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/slack-go/slack"
 )
 
@@ -26,8 +22,7 @@ type SlackBot struct {
 }
 
 func NewSlackBot(oauthToken string, channelID string) SlackBot {
-	//registerHTTP()
-	bot = SlackBot{slack.New("xoxb-4005337241633-3989795317301-RRI8WsutUxJ0PysCiYCjkQG9"), "C03V952ENP6"}
+	bot = SlackBot{slack.New("xoxb-4005337241633-3989795317301-SSTJTiSY5xC9VMIMb3BVXNH0"), "C03V952ENP6"}
 	return bot
 }
 
@@ -45,7 +40,7 @@ func (bot SlackBot) testMessage() {
 	log.Printf("Request sent to Channel %s at %s\n", channelID, timestamp)
 }
 
-func (bot SlackBot) sendKnock(username string, location string) {
+func (bot SlackBot) sendKnock(username string, location string) (messagets string) {
 	// TODO: Allow people to answer from Slack?
 	/*attachment := slack.Attachment {
 	    Pretext: "my sick-ass pretext",
@@ -80,36 +75,36 @@ func (bot SlackBot) sendKnock(username string, location string) {
 	}
 
 	log.Printf("Request sent to Channel %s at %s\n", channelID, timestamp)
-	//registerHTTP()
+	return timestamp
 
 }
-func buttonHandler(c *gin.Context) {
-	requestBody, err := io.ReadAll(c.Request.Body)
-	requestBodyString := strings.TrimLeft(string(requestBody[:]), "payload=")
-	requestBodyString = strings.ReplaceAll(requestBodyString, "%22", "\"")
-	requestBodyString = strings.ReplaceAll(requestBodyString, "%7B", "{")
-	requestBodyString = strings.ReplaceAll(requestBodyString, "%3A", ":")
-	requestBodyString = strings.ReplaceAll(requestBodyString, "%2C", ",")
-	requestBodyString = strings.ReplaceAll(requestBodyString, "%5B", "[")
-	requestBodyString = strings.ReplaceAll(requestBodyString, "%7D", "}")
-	requestBodyString = strings.ReplaceAll(requestBodyString, "%5D", "]")
 
-	var payload slack.InteractionCallback
-	err = json.Unmarshal([]byte(requestBodyString), &payload)
+func (bot SlackBot) sendReply(messagets string, subtopic string) {
+	// TODO: Allow people to answer from Slack?
+	/*attachment := slack.Attachment {
+	    Pretext: "my sick-ass pretext",
+	    Text: "Chom from LetMeIn2",
+	}*/
 
-	//log.Printf("Entered button handler, %s", requestBodyString)
-	if err != nil {
-		log.Fatalf("Error: %s\n", err)
+	text := ""
+	if subtopic == "ack" {
+		text = "Someone is coming to get you!"
+	} else if subtopic == "nvm" {
+		text = "This request was cancelled!"
+	} else if subtopic == "timeout" {
+		text = "This request timed out!"
 	}
 
 	channelID, timestamp, err := bot.api.PostMessage(
 		bot.channelID,
-		slack.MsgOptionText(fmt.Sprintf("*%s* is on the rescue!", payload.User.Name), false),
-		slack.MsgOptionAsUser(true),
-		slack.MsgOptionTS(payload.MessageTs),
+		slack.MsgOptionText(text, false),
+		slack.MsgOptionTS(messagets),
 	)
+
 	if err != nil {
 		log.Fatalf("Error: %s\n", err)
 	}
+
 	log.Printf("Request sent to Channel %s at %s\n", channelID, timestamp)
+
 }

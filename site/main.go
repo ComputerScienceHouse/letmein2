@@ -80,6 +80,6 @@ func main() {
 
 	r.GET("/knock/socket/:location", knock.handler)
 
-	r.POST("/actions", buttonHandler)
+	r.POST("/actions", buttonHandler) // Slack POST
 	r.Run()
 }
