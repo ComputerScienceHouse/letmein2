@@ -22,7 +22,7 @@ type SlackBot struct {
 }
 
 func NewSlackBot(oauthToken string, channelID string) SlackBot {
-	bot = SlackBot{slack.New("xoxb-4005337241633-3989795317301-SSTJTiSY5xC9VMIMb3BVXNH0"), "C03V952ENP6"}
+	bot = SlackBot{slack.New(oauthToken), channelID}
 	return bot
 }
 
@@ -41,16 +41,11 @@ func (bot SlackBot) testMessage() {
 }
 
 func (bot SlackBot) sendKnock(username string, location string) (messagets string) {
-	// TODO: Allow people to answer from Slack?
-	/*attachment := slack.Attachment {
-	    Pretext: "my sick-ass pretext",
-	    Text: "Chom from LetMeIn2",
-	}*/
 
-	pretext := fmt.Sprintf("<!here> *%s* is requesting entry at *%s*", username, location)
+	text := fmt.Sprintf("<!here> *%s* is requesting entry at *%s*", username, location)
 
 	attachment := slack.Attachment{
-		Pretext:    pretext,
+		Pretext:    "",
 		Fallback:   "Your Slack client is not supported",
 		CallbackID: "letmein_accept",
 		Color:      "#32CD32",
@@ -66,7 +61,7 @@ func (bot SlackBot) sendKnock(username string, location string) (messagets strin
 
 	channelID, timestamp, err := bot.api.PostMessage(
 		bot.channelID,
-		slack.MsgOptionText("", false),
+		slack.MsgOptionText(text, false),
 		slack.MsgOptionAttachments(attachment),
 	)
 
@@ -79,26 +74,22 @@ func (bot SlackBot) sendKnock(username string, location string) (messagets strin
 
 }
 
-func (bot SlackBot) sendReply(messagets string, subtopic string) {
-	// TODO: Allow people to answer from Slack?
-	/*attachment := slack.Attachment {
-	    Pretext: "my sick-ass pretext",
-	    Text: "Chom from LetMeIn2",
-	}*/
+func (bot SlackBot) updateStatus(messagets string, subtopic string, knockEvent KnockEvent) {
+	// Allows messages to be updated with the status of the request
 
 	text := ""
 	if subtopic == "ack" {
-		text = "Someone is coming to get you!"
+		text = "This request was answered 🟢!"
 	} else if subtopic == "nvm" {
-		text = "This request was cancelled!"
+		text = "This request was cancelled 🟡!"
 	} else if subtopic == "timeout" {
-		text = "This request timed out!"
+		text = "This request timed out 🔴!"
 	}
 
-	channelID, timestamp, err := bot.api.PostMessage(
+	_, channelID, timestamp, err := bot.api.UpdateMessage(
 		bot.channelID,
+		knockEvent.SlackMessageTS,
 		slack.MsgOptionText(text, false),
-		slack.MsgOptionTS(messagets),
 	)
 
 	if err != nil {

@@ -90,8 +90,8 @@ func (knock *Knock) handler(c *gin.Context) {
 	mqttClient = knock.createMQTTClient(conn, &knockEvent)
 
 	// Send the request to subscribed devices.
-	token := mqttClient.Publish("letmein2/req", 0, false, location)
-	token.Wait()
+	//token := mqttClient.Publish("letmein2/req", 0, false, location)
+	//token.Wait()
 
 	// 1 second offset to make the timeout modal look better.
 	go knockEvent.doCountdown(conn, mqttClient, knock.timeout+1)
@@ -113,7 +113,7 @@ func (knock Knock) createMQTTClient(conn *websocket.Conn, knockEvent *KnockEvent
 			// TODO (willnilges): Give location of acknowledging device.
 			knockEvent.Event = "ACKNOWLEDGE"
 			knockEvent.CurrentTime = 0
-			bot.sendReply(knockEvent.SlackMessageTS, "ack")
+			bot.updateStatus(knockEvent.SlackMessageTS, "ack", *knockEvent)
 			message, _ := json.Marshal(knockEvent)
 			conn.WriteMessage(websocket.TextMessage, message)
 			conn.Close()
@@ -175,7 +175,7 @@ func (knockEvent *KnockEvent) doCountdown(wsConn *websocket.Conn, mqttClient mqt
 	knockEvent.Event = "TIMEOUT"
 	knockEvent.CurrentTime = 0
 	timeoutMessage, _ := json.Marshal(knockEvent)
-	bot.sendReply(knockEvent.SlackMessageTS, "timeout")
+	bot.updateStatus(knockEvent.SlackMessageTS, "timeout", *knockEvent)
 	wsConn.WriteMessage(websocket.TextMessage, timeoutMessage)
 }
 
@@ -196,7 +196,7 @@ func (knockEvent *KnockEvent) readClientMsg(wsConn *websocket.Conn, mqttClient m
 		if clientMessageObject.Event == "NEVERMIND" {
 			fmt.Println("Got NEVERMIND at ", clientMessageObject.Location)
 			wsConn.Close()
-			bot.sendReply(knockEvent.SlackMessageTS, "nvm")
+			bot.updateStatus(knockEvent.SlackMessageTS, "nvm", *knockEvent)
 			// TODO: support this on the device lol
 			token := mqttClient.Publish("letmein2/nvm", 0, false, clientMessageObject.Location)
 			token.Wait()
@@ -228,19 +228,9 @@ func buttonHandler(c *gin.Context) {
 	token := mqttClient.Publish("letmein2/ack", 0, false, "usercenter")
 	token.Wait()
 
-	//send reply in thread
-	channelID, timestamp, err := bot.api.PostMessage(
-		bot.channelID,
-		slack.MsgOptionText(fmt.Sprintf("*%s* is on the rescue!", payload.User.Name), false),
-		slack.MsgOptionAsUser(true),
-		slack.MsgOptionTS(payload.MessageTs),
-	)
-
 	if err != nil {
 		log.Fatalf("Error: %s\n", err)
 	}
-
-	log.Printf("Request sent to Channel %s at %s\n", channelID, timestamp)
 }
 
 func (knockEvent KnockEvent) cleanup(wsConn *websocket.Conn, mqttClient mqtt.Client) {
