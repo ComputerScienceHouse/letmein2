@@ -90,6 +90,7 @@ func (bot SlackBot) updateStatus(messagets string, subtopic string, knockEvent K
 		bot.channelID,
 		knockEvent.SlackMessageTS,
 		slack.MsgOptionText(text, false),
+		slack.MsgOptionAttachments(slack.Attachment{}),
 	)
 
 	if err != nil {
