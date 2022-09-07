@@ -112,15 +112,16 @@ So, for example, you could publish on topic `letmein2/req` with payload `level_1
 ### `letmein2/ack`
 A topic meant for letting **Clients** acknowledge a **Knock**. The payload should be the location/ID of the device acknowledging. These aren't in a database anywhere, but they ought to be.
 
-Here's an example that isn't real. We'll probably need this later anyway.
+Note the Slack location in the client map, this will be used to send dynamic messages in Slack when a **Knock** is received or modified.
 
 ```Go
-var clientMap = map[string]string {
+var client_map = map[string]string {
     "usercenter": "User Center",
     "lounge": "Lounge",
     "luser": "Luser Center",
     "software": "Software Room",
-    "server": "Server Room"
+    "server": "Server Room",
+    "slack": "Slack"
 }
 ```
 
@@ -130,3 +131,8 @@ For example, you could publish on `letmein2/ack` with payload `usercenter` to le
 A topic for notifying all **Clients** that a **Knock** is being cancelled. The payload should be a location from the above `location_map`.
 
 If you publish on topic `letmein2/nvm` with payload `s_stairs`, that indicates that any pending **Knock** originating from the South Side Stairwell should be ignored (and that **Clients** should turn their lights/sound off!)
+
+## SLACK CLIENT
+Upon receiving any of these requests, the server will also send a **Slack** message to a predefined channel in a Slack workspace. You need to define a Request URL within your Slack bot's settings (`your_server_url/actions` && Your server needs to have HTTPS url).
+
+The message it sends will also have a **Rescue** button, which will allow you to send a `letmein/ack` back, completing the request. Basically an acknowledge button but for lazy people who don't want to go to the button itself. The message will also self-update when a) the knock is acknowledged, b) the knock is timed out, or c) the knock is cancelled.

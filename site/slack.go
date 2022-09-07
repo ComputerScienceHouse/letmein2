@@ -74,15 +74,15 @@ func (bot SlackBot) sendKnock(username string, location string) (messagets strin
 
 }
 
-func (bot SlackBot) updateStatus(messagets string, subtopic string, knockEvent KnockEvent) {
+func (bot SlackBot) updateStatus(knockEvent KnockEvent) {
 	// Allows messages to be updated with the status of the request
 
 	text := ""
-	if subtopic == "ack" {
+	if knockEvent.Event == "ACKNOWLEDGE" {
 		text = "This request was answered 🟢!"
-	} else if subtopic == "nvm" {
+	} else if knockEvent.Event == "NEVERMIND" {
 		text = "This request was cancelled 🟡!"
-	} else if subtopic == "timeout" {
+	} else if knockEvent.Event == "TIMEOUT" {
 		text = "This request timed out 🔴!"
 	}
 

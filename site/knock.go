@@ -27,6 +27,16 @@ var location_map = map[string]string{
 	"l_well":   "L Well",
 }
 
+// Copied the client map variable from README.md
+var client_map = map[string]string {
+    "usercenter": "User Center",
+    "lounge": "Lounge",
+    "luser": "Luser Center",
+    "software": "Software Room",
+    "server": "Server Room",
+    "slack": "Slack",
+}
+
 // TODO (willnilges): Structured logging into Datadog
 
 var wsUpgrader = websocket.Upgrader{
@@ -90,8 +100,8 @@ func (knock *Knock) handler(c *gin.Context) {
 	mqttClient = knock.createMQTTClient(conn, &knockEvent)
 
 	// Send the request to subscribed devices.
-	//token := mqttClient.Publish("letmein2/req", 0, false, location)
-	//token.Wait()
+	token := mqttClient.Publish("letmein2/req", 0, false, location)
+	token.Wait()
 
 	// 1 second offset to make the timeout modal look better.
 	go knockEvent.doCountdown(conn, mqttClient, knock.timeout+1)
@@ -110,10 +120,9 @@ func (knock Knock) createMQTTClient(conn *websocket.Conn, knockEvent *KnockEvent
 		// The only use the server has is listening for an ack from a
 		// device.
 		if msg.Topic() == "letmein2/ack" && string(msg.Payload()) != "nvm" && string(msg.Payload()) != "timeout" {
-			// TODO (willnilges): Give location of acknowledging device.
 			knockEvent.Event = "ACKNOWLEDGE"
 			knockEvent.CurrentTime = 0
-			bot.updateStatus(knockEvent.SlackMessageTS, "ack", *knockEvent)
+			bot.updateStatus(*knockEvent)
 			message, _ := json.Marshal(knockEvent)
 			conn.WriteMessage(websocket.TextMessage, message)
 			conn.Close()
@@ -175,7 +184,7 @@ func (knockEvent *KnockEvent) doCountdown(wsConn *websocket.Conn, mqttClient mqt
 	knockEvent.Event = "TIMEOUT"
 	knockEvent.CurrentTime = 0
 	timeoutMessage, _ := json.Marshal(knockEvent)
-	bot.updateStatus(knockEvent.SlackMessageTS, "timeout", *knockEvent)
+	bot.updateStatus(*knockEvent)
 	wsConn.WriteMessage(websocket.TextMessage, timeoutMessage)
 }
 
@@ -196,8 +205,7 @@ func (knockEvent *KnockEvent) readClientMsg(wsConn *websocket.Conn, mqttClient m
 		if clientMessageObject.Event == "NEVERMIND" {
 			fmt.Println("Got NEVERMIND at ", clientMessageObject.Location)
 			wsConn.Close()
-			bot.updateStatus(knockEvent.SlackMessageTS, "nvm", *knockEvent)
-			// TODO: support this on the device lol
+			bot.updateStatus(*knockEvent)
 			token := mqttClient.Publish("letmein2/nvm", 0, false, clientMessageObject.Location)
 			token.Wait()
 		}
@@ -225,7 +233,7 @@ func buttonHandler(c *gin.Context) {
 	}
 
 	//send letmein2/ack
-	token := mqttClient.Publish("letmein2/ack", 0, false, "usercenter")
+	token := mqttClient.Publish("letmein2/ack", 0, false, client_map["slack"])
 	token.Wait()
 
 	if err != nil {
