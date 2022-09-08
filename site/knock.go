@@ -217,6 +217,7 @@ func (knockEvent *KnockEvent) readClientMsg(wsConn *websocket.Conn, mqttClient m
     }
 }
 
+// this code will only run when Gin receives a POST request from Slack
 func buttonHandler(c *gin.Context) {
     //read the request body string from Slack
     encodedRequestBody, err := io.ReadAll(c.Request.Body)

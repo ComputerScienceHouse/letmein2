@@ -90,6 +90,7 @@ func (bot SlackBot) updateStatus(knockEvent KnockEvent) {
         bot.channelID,
         knockEvent.SlackMessageTS,
         slack.MsgOptionText(text, false),
+        // blank attachment here to clear any previous attachments
         slack.MsgOptionAttachments(slack.Attachment{}),
     )
 
