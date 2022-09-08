@@ -99,11 +99,11 @@ A topic meant for sending requests to the LetMeIn network. The payload should be
 
 ```Go
 var location_map = map[string]string{
-	"n_stairs": "North Side Stairwell",
-	"s_stairs": "South Side Stairwell",
-	"level_a":  "Level A Elevator Lobby",
-	"level_1":  "Level 1 Elevator Lobby",
-	"l_well":   "L Well",
+    "n_stairs": "North Side Stairwell",
+    "s_stairs": "South Side Stairwell",
+    "level_a":  "Level A Elevator Lobby",
+    "level_1":  "Level 1 Elevator Lobby",
+    "l_well":   "L Well",
 }
 ```
 
