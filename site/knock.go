@@ -206,6 +206,8 @@ func (knockEvent *KnockEvent) readClientMsg(wsConn *websocket.Conn, mqttClient m
         if clientMessageObject.Event == "NEVERMIND" {
             fmt.Println("Got NEVERMIND at ", clientMessageObject.Location)
             wsConn.Close()
+
+            knockEvent.Event = "NEVERMIND"
             bot.updateStatus(*knockEvent)
             token := mqttClient.Publish("letmein2/nvm", 0, false, clientMessageObject.Location)
             token.Wait()

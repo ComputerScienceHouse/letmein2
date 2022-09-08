@@ -133,6 +133,10 @@ A topic for notifying all **Clients** that a **Knock** is being cancelled. The p
 If you publish on topic `letmein2/nvm` with payload `s_stairs`, that indicates that any pending **Knock** originating from the South Side Stairwell should be ignored (and that **Clients** should turn their lights/sound off!)
 
 ## SLACK CLIENT
+
 Upon receiving any of these requests, the server will also send a **Slack** message to a predefined channel in a Slack workspace. The message it sends will also have a **Rescue** button, which will allow you to send a `letmein/ack` back, completing the request. Basically an acknowledge button but for lazy people who don't want to go to the button itself. The message will also self-update when a) the knock is acknowledged, b) the knock is timed out, or c) the knock is cancelled.
+
+### Setting up the bot
+Ensure that the application is given the scope `connections:write`, and make sure it is added to the channel (`/invite <app_name>` or `@<app_name>`).
 
 To set up 2 way messaging, you need to define a Request URL (`your_server_url/actions`) within your Slack bot's settings . You can find this setting at [App Homepage](https://api.slack.com/apps) >> Your_App >> Interactivity & Shortcuts (under Features) >> Interactivity >> Request URL. Make sure Interactivity is toggled 'On,' and that your request URL uses HTTPS. If you don't do this, the **Rescue** button does not do anything.
