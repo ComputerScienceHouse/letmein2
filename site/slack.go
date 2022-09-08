@@ -22,7 +22,7 @@ type SlackBot struct {
 }
 
 func NewSlackBot(oauthToken string, channelID string) SlackBot {
-	bot = SlackBot{slack.New(oauthToken), channelID}
+	bot = SlackBot{slack.New("xoxb-4005337241633-3989795317301-PMV4AahMrWixkELYTK0CpOux"), "C03V952ENP6"}
 	return bot
 }
 

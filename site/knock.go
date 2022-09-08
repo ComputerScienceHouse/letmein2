@@ -86,6 +86,7 @@ func (knock *Knock) handler(c *gin.Context) {
 		Name:           "",
 		Location:       location_map[location],
 		ShortLocation:  location,
+		ClientLocation: "",
 		SlackMessageTS: "",
 	}
 
@@ -163,6 +164,7 @@ type KnockEvent struct {
 	Name           string
 	Location       string
 	ShortLocation  string
+	ClientLocation string
 	SlackMessageTS string
 }
 
@@ -233,7 +235,7 @@ func buttonHandler(c *gin.Context) {
 	}
 
 	//send letmein2/ack
-	token := mqttClient.Publish("letmein2/ack", 0, false, client_map["slack"])
+	token := mqttClient.Publish("letmein2/ack", 0, false, "slack")
 	token.Wait()
 
 	if err != nil {
