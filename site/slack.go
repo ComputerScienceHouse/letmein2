@@ -2,9 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/slack-go/slack"
 	"log"
+
+	"github.com/slack-go/slack"
 )
+
+var bot SlackBot
+var httpRegistered bool = false
 
 type SlackBotInterface interface {
 	testMessage()
@@ -18,7 +22,8 @@ type SlackBot struct {
 }
 
 func NewSlackBot(oauthToken string, channelID string) SlackBot {
-	return SlackBot{slack.New(oauthToken), channelID}
+	bot = SlackBot{slack.New(oauthToken), channelID}
+	return bot
 }
 
 func (bot SlackBot) testMessage() {
@@ -35,22 +40,62 @@ func (bot SlackBot) testMessage() {
 	log.Printf("Request sent to Channel %s at %s\n", channelID, timestamp)
 }
 
-func (bot SlackBot) sendKnock(username string, location string) {
-	// TODO: Allow people to answer from Slack?
-	/*attachment := slack.Attachment {
-	    Pretext: "my sick-ass pretext",
-	    Text: "Chom from LetMeIn2",
-	}*/
+func (bot SlackBot) sendKnock(username string, location string) (messagets string) {
 
-	request := fmt.Sprintf("<!here> *%s* is requesting entry at *%s*", username, location)
+	text := fmt.Sprintf("<!here> *%s* is requesting entry at *%s*", username, location)
+
+	attachment := slack.Attachment{
+		Pretext:    "",
+		Fallback:   "Your Slack client is not supported",
+		CallbackID: "letmein_accept",
+		Color:      "#32CD32",
+		Actions: []slack.AttachmentAction{
+			{
+				Name:  "accept",
+				Text:  "Rescue",
+				Type:  "button",
+				Value: "accept",
+			},
+		},
+	}
+
 	channelID, timestamp, err := bot.api.PostMessage(
 		bot.channelID,
-		slack.MsgOptionText(request, false),
-		slack.MsgOptionAsUser(true),
+		slack.MsgOptionText(text, false),
+		slack.MsgOptionAttachments(attachment),
 	)
 
 	if err != nil {
-		log.Fatalf("%s\n", err)
+		log.Fatalf("Error: %s\n", err)
+	}
+
+	log.Printf("Request sent to Channel %s at %s\n", channelID, timestamp)
+	return timestamp
+
+}
+
+func (bot SlackBot) updateStatus(knockEvent KnockEvent) {
+	// Allows messages to be updated with the status of the request
+
+	text := ""
+	if knockEvent.Event == "ACKNOWLEDGE" {
+		text = "This request was answered 🟢!"
+	} else if knockEvent.Event == "NEVERMIND" {
+		text = "This request was cancelled 🟡!"
+	} else if knockEvent.Event == "TIMEOUT" {
+		text = "This request timed out 🔴!"
+	}
+
+	_, channelID, timestamp, err := bot.api.UpdateMessage(
+		bot.channelID,
+		knockEvent.SlackMessageTS,
+		slack.MsgOptionText(text, false),
+		// blank attachment here to clear any previous attachments
+		slack.MsgOptionAttachments(slack.Attachment{}),
+	)
+
+	if err != nil {
+		log.Fatalf("Error: %s\n", err)
 	}
 
 	log.Printf("Request sent to Channel %s at %s\n", channelID, timestamp)

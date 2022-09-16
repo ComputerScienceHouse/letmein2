@@ -15,7 +15,7 @@ LetMeIn2 is a completely new re-write of LetMeIn that focuses on scalability and
 
 ![output](https://user-images.githubusercontent.com/42927786/181414031-6932ea52-353f-4a61-8531-359c0e2d7d07.gif)
 
-A user, let's say Alice, visits the website, she selects a floor. Her phone POSTs to the server specifying where she is. The server will send an MQTT message on the letmein2/req topic with Alice's location. This will cause all letmein devices on floor to light up and make noise, indicating Alice's location. Alice's phone will redirect her to a waiting screen (/anybody_home) that does another POST request (could be a GET) that waits for the server to give her a 200 response. On the backend, two things could happen: One is that someone on floor could hit one of the buttons and go get her. That causes another MQTT message on the letmein2/ack topic, which answer's Alice's phone with a 200 message, and she's notified that someone is coming for her. The other is that nobody is there to answer the box (or maybe they don't like Alice), and after a set amount of time, the server sends Alice's phone a 408 message, and will send out a timeout message on the letmein2/ack topic.
+A user, let's say Alice, visits the website, she selects a floor. Her phone POSTs to the server specifying where she is. The server will send an MQTT message on the letmein2/req topic with Alice's location. This will cause all letmein devices on floor to light up and make noise, indicating Alice's location. There will also be a message with an action button sent in Slack, listening for any updates to the request. Alice's phone will redirect her to a waiting screen (/anybody_home) that does another POST request (could be a GET) that waits for the server to give her a 200 response. On the backend, two things could happen: One is that someone on floor could hit one of the buttons (or respond by pressing the button in Slack) and go get her. That causes another MQTT message on the letmein2/ack topic, which answer's Alice's phone with a 200 message, and she's notified that someone is coming for her. The other is that nobody is there to answer the box (or maybe they don't like Alice), and after a set amount of time, the server sends Alice's phone a 408 message, and will send out a timeout message on the letmein2/ack topic.
 
 ## Developing
 
@@ -99,11 +99,11 @@ A topic meant for sending requests to the LetMeIn network. The payload should be
 
 ```Go
 var location_map = map[string]string{
-	"n_stairs": "North Side Stairwell",
-	"s_stairs": "South Side Stairwell",
-	"level_a":  "Level A Elevator Lobby",
-	"level_1":  "Level 1 Elevator Lobby",
-	"l_well":   "L Well",
+    "n_stairs": "North Side Stairwell",
+    "s_stairs": "South Side Stairwell",
+    "level_a":  "Level A Elevator Lobby",
+    "level_1":  "Level 1 Elevator Lobby",
+    "l_well":   "L Well",
 }
 ```
 
@@ -112,15 +112,16 @@ So, for example, you could publish on topic `letmein2/req` with payload `level_1
 ### `letmein2/ack`
 A topic meant for letting **Clients** acknowledge a **Knock**. The payload should be the location/ID of the device acknowledging. These aren't in a database anywhere, but they ought to be.
 
-Here's an example that isn't real. We'll probably need this later anyway.
+Note the Slack location in the client map, this will be used to send dynamic messages in Slack when a **Knock** is received or modified.
 
 ```Go
-var clientMap = map[string]string {
+var client_map = map[string]string {
     "usercenter": "User Center",
     "lounge": "Lounge",
     "luser": "Luser Center",
     "software": "Software Room",
-    "server": "Server Room"
+    "server": "Server Room",
+    "slack": "Slack"
 }
 ```
 
@@ -130,3 +131,12 @@ For example, you could publish on `letmein2/ack` with payload `usercenter` to le
 A topic for notifying all **Clients** that a **Knock** is being cancelled. The payload should be a location from the above `location_map`.
 
 If you publish on topic `letmein2/nvm` with payload `s_stairs`, that indicates that any pending **Knock** originating from the South Side Stairwell should be ignored (and that **Clients** should turn their lights/sound off!)
+
+## SLACK CLIENT
+
+Upon receiving any of these requests, the server will also send a **Slack** message to a predefined channel in a Slack workspace. The message it sends will also have a **Rescue** button, which will allow you to send a `letmein/ack` back, completing the request. Basically an acknowledge button but for lazy people who don't want to go to the button itself. The message will also self-update when a) the knock is acknowledged, b) the knock is timed out, or c) the knock is cancelled.
+
+### Setting up the bot
+Ensure that the application is given the scope `connections:write`, and make sure it is added to the channel (`/invite <app_name>` or `@<app_name>`).
+
+To set up 2 way messaging, you need to define a Request URL (`your_server_url/actions`) within your Slack bot's settings . You can find this setting at [App Homepage](https://api.slack.com/apps) >> Your_App >> Interactivity & Shortcuts (under Features) >> Interactivity >> Request URL. Make sure Interactivity is toggled 'On,' and that your request URL uses HTTPS. If you don't do this, the **Rescue** button does not do anything.

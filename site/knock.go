@@ -3,12 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/url"
+	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/slack-go/slack"
 )
 
 // Set up locations (TODO: Config file?)
@@ -21,6 +25,16 @@ var location_map = map[string]string{
 	"level_a":  "Level A Elevator Lobby",
 	"level_1":  "Level 1 Elevator Lobby",
 	"l_well":   "L Well",
+}
+
+// Copied the client map variable from README.md
+var client_map = map[string]string{
+	"usercenter": "User Center",
+	"lounge":     "Lounge",
+	"luser":      "Luser Center",
+	"software":   "Software Room",
+	"server":     "Server Room",
+	"slack":      "Slack",
 }
 
 // TODO (willnilges): Structured logging into Datadog
@@ -43,6 +57,8 @@ type Knock struct {
 	timeout  int
 }
 
+var mqttClient mqtt.Client
+
 // Functions to handle requests from the webserver
 func (knock *Knock) handler(c *gin.Context) {
 	location := c.Param("location")
@@ -63,13 +79,15 @@ func (knock *Knock) handler(c *gin.Context) {
 
 	// Create a new event to keep track of everything
 	knockEvent := KnockEvent{
-		ID:            knockID,
-		Event:         "LOCATION",
-		CurrentTime:   0,
-		MaxTime:       knock.timeout,
-		Name:          "",
-		Location:      location_map[location],
-		ShortLocation: location,
+		ID:             knockID,
+		Event:          "LOCATION",
+		CurrentTime:    0,
+		MaxTime:        knock.timeout,
+		Name:           "",
+		Location:       location_map[location],
+		ShortLocation:  location,
+		ClientLocation: "",
+		SlackMessageTS: "",
 	}
 
 	message, _ := json.Marshal(knockEvent)
@@ -79,7 +97,7 @@ func (knock *Knock) handler(c *gin.Context) {
 		return
 	}
 
-	mqttClient := knock.createMQTTClient(conn, knockEvent)
+	mqttClient = knock.createMQTTClient(conn, &knockEvent)
 
 	// Send the request to subscribed devices.
 	token := mqttClient.Publish("letmein2/req", 0, false, location)
@@ -96,15 +114,15 @@ func (knock *Knock) handler(c *gin.Context) {
 	conn.SetReadDeadline(time.Now().Add(time.Duration(knock.timeout+2) * time.Second))
 }
 
-func (knock Knock) createMQTTClient(conn *websocket.Conn, knockEvent KnockEvent) (client mqtt.Client) {
+func (knock Knock) createMQTTClient(conn *websocket.Conn, knockEvent *KnockEvent) (client mqtt.Client) {
 	var requestMessageHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 		fmt.Printf("/knock Received message \"%s\" from topic \"%s\"\n", msg.Payload(), msg.Topic())
 		// The only use the server has is listening for an ack from a
 		// device.
 		if msg.Topic() == "letmein2/ack" && string(msg.Payload()) != "nvm" && string(msg.Payload()) != "timeout" {
-			// TODO (willnilges): Give location of acknowledging device.
 			knockEvent.Event = "ACKNOWLEDGE"
 			knockEvent.CurrentTime = 0
+			bot.updateStatus(*knockEvent)
 			message, _ := json.Marshal(knockEvent)
 			conn.WriteMessage(websocket.TextMessage, message)
 			conn.Close()
@@ -138,16 +156,18 @@ type KnockEventInterface interface {
 }
 
 type KnockEvent struct {
-	ID            string
-	Event         string
-	CurrentTime   int
-	MaxTime       int
-	Name          string
-	Location      string
-	ShortLocation string
+	ID             string
+	Event          string
+	CurrentTime    int
+	MaxTime        int
+	Name           string
+	Location       string
+	ShortLocation  string
+	ClientLocation string
+	SlackMessageTS string
 }
 
-func (knockEvent KnockEvent) doCountdown(wsConn *websocket.Conn, mqttClient mqtt.Client, timeout int) {
+func (knockEvent *KnockEvent) doCountdown(wsConn *websocket.Conn, mqttClient mqtt.Client, timeout int) {
 	defer knockEvent.cleanup(wsConn, mqttClient)
 	for i := knockEvent.MaxTime; i > 0; i-- {
 		knockEvent.Event = "COUNTDOWN"
@@ -165,10 +185,11 @@ func (knockEvent KnockEvent) doCountdown(wsConn *websocket.Conn, mqttClient mqtt
 	knockEvent.Event = "TIMEOUT"
 	knockEvent.CurrentTime = 0
 	timeoutMessage, _ := json.Marshal(knockEvent)
+	bot.updateStatus(*knockEvent)
 	wsConn.WriteMessage(websocket.TextMessage, timeoutMessage)
 }
 
-func (knockEvent KnockEvent) readClientMsg(wsConn *websocket.Conn, mqttClient mqtt.Client, bot SlackBot) {
+func (knockEvent *KnockEvent) readClientMsg(wsConn *websocket.Conn, mqttClient mqtt.Client, bot SlackBot) {
 	for {
 		_, message, err := wsConn.ReadMessage()
 		if err != nil {
@@ -185,14 +206,42 @@ func (knockEvent KnockEvent) readClientMsg(wsConn *websocket.Conn, mqttClient mq
 		if clientMessageObject.Event == "NEVERMIND" {
 			fmt.Println("Got NEVERMIND at ", clientMessageObject.Location)
 			wsConn.Close()
-			// TODO: support this on the device lol
+
+			knockEvent.Event = "NEVERMIND"
+			bot.updateStatus(*knockEvent)
 			token := mqttClient.Publish("letmein2/nvm", 0, false, clientMessageObject.Location)
 			token.Wait()
 		}
 		if clientMessageObject.Event == "NAME" {
 			fmt.Println("Got NAME: ", clientMessageObject.Name)
-			go bot.sendKnock(clientMessageObject.Name, location_map[clientMessageObject.Location])
+			knockEvent.SlackMessageTS = bot.sendKnock(clientMessageObject.Name, location_map[clientMessageObject.Location])
 		}
+	}
+}
+
+// this code will only run when Gin receives a POST request from Slack
+func buttonHandler(c *gin.Context) {
+	//read the request body string from Slack
+	encodedRequestBody, err := io.ReadAll(c.Request.Body)
+	requestBody, err := url.QueryUnescape(string(encodedRequestBody))
+
+	//parse the string to remove HTML markup and turn it into readable JSON format
+	requestBodyString := strings.TrimLeft(string(requestBody[:]), "payload=")
+
+	//process the json string into an object contained within payload
+	var payload slack.InteractionCallback
+	err = json.Unmarshal([]byte(requestBodyString), &payload)
+
+	if err != nil {
+		log.Fatalf("Error: %s\n", err)
+	}
+
+	//send letmein2/ack
+	token := mqttClient.Publish("letmein2/ack", 0, false, "slack")
+	token.Wait()
+
+	if err != nil {
+		log.Fatalf("Error: %s\n", err)
 	}
 }
 
