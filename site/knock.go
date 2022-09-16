@@ -31,16 +31,16 @@ var wsUpgrader = websocket.Upgrader{
 }
 
 type KnockInterface interface {
-    handler()
-    createMQTTClient()
+	handler()
+	createMQTTClient()
 }
 
 type Knock struct {
-    slackBot SlackBot
-    mqttID int
-    broker string
-    port int
-    timeout int
+	slackBot SlackBot
+	mqttID   int
+	broker   string
+	port     int
+	timeout  int
 }
 
 // Functions to handle requests from the webserver
@@ -51,7 +51,7 @@ func (knock *Knock) handler(c *gin.Context) {
 	w := c.Writer
 	r := c.Request
 
-	fmt.Println("Somebody has knocked. ID is ", knockID ," Timeout is ", knock.timeout, "s")
+	fmt.Println("Somebody has knocked. ID is ", knockID, " Timeout is ", knock.timeout, "s")
 
 	// Set up a websocket connection with the client.
 	conn, err := wsUpgrader.Upgrade(w, r, nil)
@@ -61,16 +61,16 @@ func (knock *Knock) handler(c *gin.Context) {
 		return
 	}
 
-    // Create a new event to keep track of everything
-    knockEvent := KnockEvent {
-        ID: knockID,
-        Event: "LOCATION",
-        CurrentTime: 0,
-        MaxTime: knock.timeout,
-        Name: "",
-        Location: location_map[location],
-        ShortLocation: location,
-    }
+	// Create a new event to keep track of everything
+	knockEvent := KnockEvent{
+		ID:            knockID,
+		Event:         "LOCATION",
+		CurrentTime:   0,
+		MaxTime:       knock.timeout,
+		Name:          "",
+		Location:      location_map[location],
+		ShortLocation: location,
+	}
 
 	message, _ := json.Marshal(knockEvent)
 	err = conn.WriteMessage(websocket.TextMessage, message)
@@ -103,8 +103,8 @@ func (knock Knock) createMQTTClient(conn *websocket.Conn, knockEvent KnockEvent)
 		// device.
 		if msg.Topic() == "letmein2/ack" && string(msg.Payload()) != "nvm" && string(msg.Payload()) != "timeout" {
 			// TODO (willnilges): Give location of acknowledging device.
-            knockEvent.Event = "ACKNOWLEDGE"
-            knockEvent.CurrentTime = 0;
+			knockEvent.Event = "ACKNOWLEDGE"
+			knockEvent.CurrentTime = 0
 			message, _ := json.Marshal(knockEvent)
 			conn.WriteMessage(websocket.TextMessage, message)
 			conn.Close()
@@ -131,28 +131,27 @@ func mqttSubTopic(client mqtt.Client, handler mqtt.MessageHandler, topic string)
 	fmt.Printf("Subscribed to topic %s\n", topic)
 }
 
-
 type KnockEventInterface interface {
-    doCountdown()
-    readClientMsg()
-    cleanup()
+	doCountdown()
+	readClientMsg()
+	cleanup()
 }
 
 type KnockEvent struct {
-    ID            string
-    Event         string
-    CurrentTime   int
-    MaxTime       int
-    Name          string
-    Location      string
-    ShortLocation string
+	ID            string
+	Event         string
+	CurrentTime   int
+	MaxTime       int
+	Name          string
+	Location      string
+	ShortLocation string
 }
 
 func (knockEvent KnockEvent) doCountdown(wsConn *websocket.Conn, mqttClient mqtt.Client, timeout int) {
 	defer knockEvent.cleanup(wsConn, mqttClient)
 	for i := knockEvent.MaxTime; i > 0; i-- {
-        knockEvent.Event = "COUNTDOWN"
-        knockEvent.CurrentTime = i;
+		knockEvent.Event = "COUNTDOWN"
+		knockEvent.CurrentTime = i
 		message, _ := json.Marshal(knockEvent)
 		err := wsConn.WriteMessage(websocket.TextMessage, message) // json go brrr
 		if err != nil {
@@ -163,38 +162,38 @@ func (knockEvent KnockEvent) doCountdown(wsConn *websocket.Conn, mqttClient mqtt
 	}
 	token := mqttClient.Publish("letmein2/timeout", 0, false, knockEvent.ShortLocation)
 	token.Wait()
-    knockEvent.Event = "TIMEOUT"
-    knockEvent.CurrentTime = 0;
+	knockEvent.Event = "TIMEOUT"
+	knockEvent.CurrentTime = 0
 	timeoutMessage, _ := json.Marshal(knockEvent)
 	wsConn.WriteMessage(websocket.TextMessage, timeoutMessage)
 }
 
 func (knockEvent KnockEvent) readClientMsg(wsConn *websocket.Conn, mqttClient mqtt.Client, bot SlackBot) {
-    for {
-        _, message, err := wsConn.ReadMessage()
-        if err != nil {
-            log.Println("knockWatchForNvm:", err, ". exiting for ", knockEvent.ID)
-            return
-        }
-        clientMessageObject := KnockEvent{}
-        err = json.Unmarshal([]byte(message), &clientMessageObject)
-        fmt.Println("Recieved message from client in session ", knockEvent.ID, ". Message: ", clientMessageObject);
-        if err != nil {
-            log.Println("knockWatchForNvm:", err, ".")
-            return
-        }
-        if clientMessageObject.Event == "NEVERMIND" {
-            fmt.Println("Got NEVERMIND at ", clientMessageObject.Location)
-            wsConn.Close()
-            // TODO: support this on the device lol
-            token := mqttClient.Publish("letmein2/nvm", 0, false, clientMessageObject.Location)
-            token.Wait()
-        }
-        if clientMessageObject.Event == "NAME" {
-            fmt.Println("Got NAME: ", clientMessageObject.Name)
-            go bot.sendKnock(clientMessageObject.Name, location_map[clientMessageObject.Location])
-        }
-    }
+	for {
+		_, message, err := wsConn.ReadMessage()
+		if err != nil {
+			log.Println("knockWatchForNvm:", err, ". exiting for ", knockEvent.ID)
+			return
+		}
+		clientMessageObject := KnockEvent{}
+		err = json.Unmarshal([]byte(message), &clientMessageObject)
+		fmt.Println("Recieved message from client in session ", knockEvent.ID, ". Message: ", clientMessageObject)
+		if err != nil {
+			log.Println("knockWatchForNvm:", err, ".")
+			return
+		}
+		if clientMessageObject.Event == "NEVERMIND" {
+			fmt.Println("Got NEVERMIND at ", clientMessageObject.Location)
+			wsConn.Close()
+			// TODO: support this on the device lol
+			token := mqttClient.Publish("letmein2/nvm", 0, false, clientMessageObject.Location)
+			token.Wait()
+		}
+		if clientMessageObject.Event == "NAME" {
+			fmt.Println("Got NAME: ", clientMessageObject.Name)
+			go bot.sendKnock(clientMessageObject.Name, location_map[clientMessageObject.Location])
+		}
+	}
 }
 
 func (knockEvent KnockEvent) cleanup(wsConn *websocket.Conn, mqttClient mqtt.Client) {

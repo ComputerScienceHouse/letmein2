@@ -67,8 +67,8 @@ func main() {
 	r.LoadHTMLGlob(lmiTemplates)
 	r.Static("/static", lmiStatic)
 
-    bot := NewSlackBot(oauthToken, channelID)
-    knock := Knock{bot, 0, broker, portNumber, timeoutPeriod}
+	bot := NewSlackBot(oauthToken, channelID)
+	knock := Knock{bot, 0, broker, portNumber, timeoutPeriod}
 
 	// ===== Route definitions =====
 
