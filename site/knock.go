@@ -45,8 +45,8 @@ var wsUpgrader = websocket.Upgrader{
 }
 
 type KnockInterface interface {
-    handler()
-    createMQTTClient()
+	handler()
+	createMQTTClient()
 }
 
 type Knock struct {
@@ -150,9 +150,9 @@ func mqttSubTopic(client mqtt.Client, handler mqtt.MessageHandler, topic string)
 }
 
 type KnockEventInterface interface {
-    doCountdown()
-    readClientMsg()
-    cleanup()
+	doCountdown()
+	readClientMsg()
+	cleanup()
 }
 
 type KnockEvent struct {

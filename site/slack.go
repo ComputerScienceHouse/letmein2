@@ -33,9 +33,9 @@ func (bot SlackBot) testMessage() {
         slack.MsgOptionAsUser(true),
     )
 
-    if err != nil {
-        log.Fatalf("%s\n", err)
-    }
+	if err != nil {
+		log.Fatalf("%s\n", err)
+	}
 
     log.Printf("Request sent to Channel %s at %s\n", channelID, timestamp)
 }
@@ -99,5 +99,4 @@ func (bot SlackBot) updateStatus(knockEvent KnockEvent) {
     }
 
     log.Printf("Request sent to Channel %s at %s\n", channelID, timestamp)
-
 }
