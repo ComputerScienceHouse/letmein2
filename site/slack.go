@@ -42,7 +42,7 @@ func (bot SlackBot) testMessage() {
 
 func (bot SlackBot) sendKnock(username string, location string) (messagets string) {
 
-	text := fmt.Sprintf("<!here> *%s* is requesting entry at *%s*", username, location)
+	text := fmt.Sprintf("@here *%s* is requesting entry at *%s*", username, location)
 
 	attachment := slack.Attachment{
 		Pretext:    "",
