@@ -12,7 +12,7 @@ For the Slack request URL, it is necessary to have an HTTPS connection. For this
 2. Run `ngrok http 8080` in a `screen` session, or in a terminal window
 3. Use the Forwarding URL (something like `https://<#####>.ngrok.io`) to access the local instance
 
-The Forwarding URL + `/actions` is now the Slack request URL as well.
+The Forwarding URL + `/actions` is now the Slack request URL as well. You can also use `localhost:4040/` to access your `ngrok` dashboard and monitor any requests to the instance.
 
 <!--
 ## Baremetal
