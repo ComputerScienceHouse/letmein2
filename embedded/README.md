@@ -36,3 +36,6 @@ You might also be able to find libraries [here](https://circuitpython.org/librar
 
 To program the device, just copy code over to the device that mounts on your computer when you plug it in:
 `cp Code/letmein2/feather/code.py /run/media/wilnil/CIRCUITPY/code.py`
+
+To view the serial console, you can use [Mu](https://learn.adafruit.com/welcome-to-circuitpython/kattni-connecting-to-the-serial-console), or if you'd prefer a more advanced Linux connection, you can use the `screen` and `tio` package to [connect](https://learn.adafruit.com/welcome-to-circuitpython/advanced-serial-console-on-linux) to the serial console:
+`sudo screen /dev/ttyACM0 115200`. 
