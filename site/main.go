@@ -84,5 +84,6 @@ func main() {
 	// make sure to update the `Request Url` in the Interactivity tab in the Slack App settings, to your_server_url/actions
 	// ^^^ also make sure that your server is hosted with HTTPS or Slack will be mad at you
 	r.POST("/actions", buttonHandler)
+	
 	r.Run()
 }

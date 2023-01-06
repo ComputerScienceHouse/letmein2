@@ -21,10 +21,23 @@ const namelessTitle = document.getElementById("nameless_title");
 function homePageSetup() {
   resetRequestModal();
   const buttons = locationList.getElementsByTagName("button");
+  const input_item = document.getElementById('knock_name_input');
   for (const button of buttons) {
     button.addEventListener("click", () => {
+      document.cookie = "name=" + input_item.value;
       knockSocket(`${button.id}`);
     });
+  }
+  // Check the cookie to see if a name is included
+  let ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf('name=') == 0) {
+      input_item.value = c.substring(5, c.length);
+    }
   }
 }
 
