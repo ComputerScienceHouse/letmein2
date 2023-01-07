@@ -16,7 +16,7 @@ class Jingle:
         self.buzzer.off()
 
     async def play(self, file):
-        with open(f"jingles/file") as jingle_file:
+        with open(f"aud_jingles/file") as jingle_file:
             self.buzzer.on()
             for action in jingle_file:
                 action_split = action.split('#', 1)[0].split(' ', 1)
