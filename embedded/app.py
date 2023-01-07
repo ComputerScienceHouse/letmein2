@@ -4,6 +4,7 @@ from secrets import *
 from art import art_ready
 
 class App:
+    buffer = []
     def __init__(self, mqtt_client, jingle):
         self.mqtt_client = mqtt_client
         self.jingle = jingle
@@ -94,6 +95,14 @@ class App:
                     await self.jingle.play(jingle_level_1)
                 elif l_well.value:
                     await self.jingle.play(jingle_l_well)
+                elif len(self.buffer):
+                    first_item = self.buffer.pop(0)
+                    if first_item == "timeout":
+                        await self.jingle.play(jingle_timeout)
+                    elif first_item == "ack":
+                        await self.jingle.play(jingle_ack)
+                    elif first_item == "nvm":
+                        await self.jingle.play(jingle_nvm)
             await asyncio.sleep(1)
 
     # MQTT message handler
@@ -117,10 +126,9 @@ class App:
             # messages and turns on the lights, but then it just turns right
             # back off. Should fix this. IDEA: Sub/Unsub.
             # TODO (willnilges): Perhaps a timeout topic would be nice.
-            self.jingle.buzzer.off()
+            self.buffer.append("ack")
             all_off()
         elif topic == mqtt_timeout_topic:
-            self.jingle.buzzer.off()
             pencil.value = 0
             if "level_a" in message:
                 level_a.value = 0
@@ -132,6 +140,7 @@ class App:
                 n_stairs.value = 0
             elif "l_well" in message:
                 l_well.value = 0
+            self.buffer.append("timeout")
         elif topic == mqtt_nvm_topic:
             # TODO: Set up some kind of configurable dingus for this (and other)
             # location-based trees
@@ -147,5 +156,6 @@ class App:
                 n_stairs.value = 0
             elif "l_well" in message:
                 l_well.value = 0
+            self.buffer.append("nvm")
 
 
