@@ -9,6 +9,7 @@ class Buzzer:
 
     # Define a list of tones/music notes to play.
     tone = {
+        "B3"  : 247,
         "C4"  : 262,
         "D4"  : 294,
         "Ds4" : 311,
