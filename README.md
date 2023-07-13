@@ -6,7 +6,7 @@
 
 Original Project: https://github.com/nfatkhiyev/letMeIn/
 
-LetMeIn2 is a completely new re-write of LetMeIn that focuses on scalability and maintainability, while keeping cost-per-unit as low as possible. Current development uses the [Tiny S2](https://www.adafruit.com/product/5029) to reduce costs.
+LetMeIn2 is a completely new re-write of LetMeIn that focuses on scalability and maintainability, while keeping cost-per-unit as low as possible. Current development uses the [Tiny S2](https://www.adafruit.com/product/5029) to ~~reduce~~ increase costs.
 
 <img src="https://user-images.githubusercontent.com/42927786/175322711-ea0d8880-9d07-4e7d-a05b-ac3031fbf712.jpg" width="40%" height="40%"/>
 
