@@ -1,0 +1,7 @@
+set LMI_TEMPLATES=./templates/*
+set LMI_STATIC=./static
+set LMI_BROKER=localhost
+set LMI_BROKER_PORT=1883
+set LMI_TIMEOUT=45
+set LMI_OAUTH=
+set LMI_CHANNEL=

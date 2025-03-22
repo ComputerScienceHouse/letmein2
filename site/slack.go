@@ -9,6 +9,7 @@ import (
 
 var bot SlackBot
 var httpRegistered bool = false
+var isValidBot bool = true
 
 type SlackBotInterface interface {
 	testMessage()
@@ -22,6 +23,9 @@ type SlackBot struct {
 }
 
 func NewSlackBot(oauthToken string, channelID string) SlackBot {
+	if oauthToken == "" || channelID == "" {
+		isValidBot = false
+	}
 	bot = SlackBot{slack.New(oauthToken), channelID}
 	return bot
 }
@@ -99,4 +103,8 @@ func (bot SlackBot) updateStatus(knockEvent KnockEvent) {
 	}
 
 	log.Printf("Request sent to Channel %s at %s\n", channelID, timestamp)
+}
+
+func (bot SlackBot) isValidBotFunc() bool {
+	return isValidBot
 }

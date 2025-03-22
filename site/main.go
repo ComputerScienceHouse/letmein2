@@ -49,13 +49,11 @@ func main() {
 	}
 
 	if !oauthMissing {
-		fmt.Println("Error! LMI_OAUTH not specified.")
-		return
+		fmt.Println("LMI_OAUTH not specified. Slack Integration is disabled! If this is not intended, please check .env!")
 	}
 
 	if !channelMissing {
-		fmt.Println("Error! LMI_CHANNEL not specified.")
-		return
+		fmt.Println("LMI_CHANNEL not specified. Slack Integration is disabled! If this is not intended, please check .env!")
 	}
 
 	fmt.Println(" MQTT broker = ", broker, ", port = ", portNumber)
@@ -84,6 +82,6 @@ func main() {
 	// make sure to update the `Request Url` in the Interactivity tab in the Slack App settings, to your_server_url/actions
 	// ^^^ also make sure that your server is hosted with HTTPS or Slack will be mad at you
 	r.POST("/actions", buttonHandler)
-	
+
 	r.Run()
 }
