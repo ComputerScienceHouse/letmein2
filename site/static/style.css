@@ -4,10 +4,10 @@
     text-align: center;
 }
 
-/* .beeg {
+.beeg {
     font-size: 16px;
     margin: 20px;
-} */
+}
 
 #locationList {
     display: flex;
@@ -25,54 +25,3 @@
     pointer-events: none;
     opacity: 0.5;
 }
-
-.tagline-text {
-    font-size: medium;
-}
-
-/* Phones */
-#locationList button {
-    width: 60vw;
-    aspect-ratio: 3/1;
-    margin: 50px 10px;
-}
-
-.beeg {
-    font-size: xx-large;
-    margin: 10px 20px;
-}
-
-.tagline-text {
-    font-size: 48px;
-    margin: 10px;
-}
-
-#knock-name-input {
-    font-size: 48px;
-}
-
-/* Desktop */
-@media (min-width: 660px) {
-
-    #locationList button {
-        width: 20vw;
-        aspect-ratio: 5/1;
-        margin: 20px;
-    }
-
-    .beeg {
-        font-size: medium;
-        margin: 20px;
-    }
-
-    .tagline-text {
-        font-size: x-large;
-        margin: 10px;
-    }
-
-    #knock-name-input {
-        font-size: medium;
-    }
-    
-}
-
