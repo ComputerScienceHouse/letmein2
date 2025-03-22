@@ -166,13 +166,22 @@ function updateTimeoutBar(currentTime, maxTime) {
   }
 }
 
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
 function toggleLocationButtons() {
+  const now = new Date();
+  var expirationDate = undefined;
   if (nameInput.value === '') {
     if(locationList.classList.contains('show-buttons')) {
       locationList.classList.remove('show-buttons');
     }
     locationList.classList.add('hide-buttons');
     tooltipText.textContent="Enter your name to begin!";
+    expirationDate = new Date(now.getTime() - 1 * 60 * 60 * 1000); // expired an hour ago; invalidates cookie
   }
   else {
     if(locationList.classList.contains('hide-buttons')) {
@@ -180,9 +189,20 @@ function toggleLocationButtons() {
     }
     locationList.classList.add('show-buttons');
     tooltipText.textContent="Where are you?";
+    expirationDate = new Date(now.getTime() + 2190 * 60 * 60 * 1000); // expires 3 months from submission
   }
+  const expires = "expires=" + expirationDate.toUTCString();
+  document.cookie = `username=${nameInput.value}; expires=${expires}; path=/`;
 }
 nameInput.addEventListener('input',toggleLocationButtons);
+
+const username = getCookie("username")
+if (getCookie("username") != undefined) { 
+  console.log("Cookie found: " + getCookie("username"));
+  nameInput.value = username;
+} else {
+  nameInput.value = ""; // will not work because modern browsers ignore autocomplete=off but one can hope
+}
 toggleLocationButtons();
 
 homePageSetup();
