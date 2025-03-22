@@ -14,6 +14,7 @@ const requestNvmAlert = document.getElementById("request_nvm_alert");
 const timeoutDiv = document.getElementById("timeout_div");
 const requestTitle = document.getElementById("request_modal_title");
 const namelessTitle = document.getElementById("nameless_title");
+const tooltipText = document.getElementById("tooltip-text");
 
 // TODO: This feels janky.
 // Sets up the event listeners for the various doors specified by the
@@ -164,5 +165,24 @@ function updateTimeoutBar(currentTime, maxTime) {
     timeoutBar.hidden = true;
   }
 }
+
+function toggleLocationButtons() {
+  if (nameInput.value === '') {
+    if(locationList.classList.contains('show-buttons')) {
+      locationList.classList.remove('show-buttons');
+    }
+    locationList.classList.add('hide-buttons');
+    tooltipText.textContent="Enter your name to begin!";
+  }
+  else {
+    if(locationList.classList.contains('hide-buttons')) {
+      locationList.classList.remove('hide-buttons');
+    }
+    locationList.classList.add('show-buttons');
+    tooltipText.textContent="Where are you?";
+  }
+}
+nameInput.addEventListener('input',toggleLocationButtons);
+toggleLocationButtons();
 
 homePageSetup();

@@ -16,3 +16,13 @@
     flex-wrap: wrap;
 }
 
+.show-buttons {
+    pointer-events: all;
+    opacity: 1;
+  }
+
+.hide-buttons {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
