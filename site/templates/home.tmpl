@@ -21,17 +21,13 @@
             <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
         </li>
         
-        <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="download" aria-expanded="false">Locations <span class="caret"></span></a>
-            <div class="dropdown-menu" aria-labelledby="download">
-                {{ range $key, $value := .location_map }}
-                    <a id="{{ $key }}" href="/request/{{ $key }}" class="dropdown-item">{{ $value }}</a>
-                {{ end }}
-            </div>
-          </li>
+        <li class="nav-item">
+    <a class="nav-link" href="/static/cshmap.png" id="download">Locations</a>
+</li>
+
 
         <li class="nav-item">
-            <a class="nav-link" href="#">What is this?</a>
+            <a class="nav-link" href="https://github.com/willnilges/letmein2">What is this?</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="https://github.com/willnilges/letmein2">
@@ -56,7 +52,7 @@
     </h2>
     <div id="locationList">
         {{ range $key, $value := .location_map }}
-        <button id="{{ $key }}" data-toggle="modal" data-target="#request_modal" class="btn btn-outline-primary beeg">{{ $value }}</button>
+        <button id="{{ $key }}" data-toggle="modal" data-target="#request_modal" class="btn btn-outline-primary beeg button" style="background-image: url('/static/{{ $key }}-bg.png');"> {{ $value }}</button>
         {{ end }}
     </div>
     <div id="request_modal" class="modal fade" role="dialog" aria-labelledby="request_modal_label" aria-hidden="true">
