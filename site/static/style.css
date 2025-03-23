@@ -16,12 +16,12 @@
     flex-wrap: wrap;
 }
 
-.show-buttons {
+.enable-buttons-container {
     pointer-events: all;
     opacity: 1;
   }
 
-.hide-buttons {
+.disable-buttons-container {
     pointer-events: none;
     opacity: 0.5;
 }

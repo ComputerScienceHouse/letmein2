@@ -176,18 +176,18 @@ function toggleLocationButtons() {
   const now = new Date();
   var expirationDate = undefined;
   if (nameInput.value === '') {
-    if(locationList.classList.contains('show-buttons')) {
-      locationList.classList.remove('show-buttons');
+    if(locationList.classList.contains('enable-buttons-container')) {
+      locationList.classList.remove('enable-buttons-container');
     }
-    locationList.classList.add('hide-buttons');
+    locationList.classList.add('disable-buttons-container');
     tooltipText.textContent="Enter your name to begin!";
     expirationDate = new Date(now.getTime() - 1 * 60 * 60 * 1000); // expired an hour ago; invalidates cookie
   }
   else {
-    if(locationList.classList.contains('hide-buttons')) {
-      locationList.classList.remove('hide-buttons');
+    if(locationList.classList.contains('disable-buttons-container')) {
+      locationList.classList.remove('disable-buttons-container');
     }
-    locationList.classList.add('show-buttons');
+    locationList.classList.add('enable-buttons-container');
     tooltipText.textContent="Where are you?";
     expirationDate = new Date(now.getTime() + 2190 * 60 * 60 * 1000); // expires 3 months from submission
   }
