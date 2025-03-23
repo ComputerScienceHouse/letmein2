@@ -17,16 +17,25 @@ type SlackBotInterface interface {
 }
 
 type SlackBot struct {
-	api       *slack.Client
-	channelID string
+	api        *slack.Client
+	channelID  string
+	isValidBot bool
 }
 
 func NewSlackBot(oauthToken string, channelID string) SlackBot {
-	bot = SlackBot{slack.New(oauthToken), channelID}
+	var isValid bool = true
+	if oauthToken == "" || channelID == "" {
+		isValid = false
+		fmt.Println("== The SlackBot is not valid, any requests will be Ignored! ==")
+	}
+	bot = SlackBot{slack.New(oauthToken), channelID, isValid}
 	return bot
 }
 
 func (bot SlackBot) testMessage() {
+	if !bot.isValidBot {
+		return
+	}
 	channelID, timestamp, err := bot.api.PostMessage(
 		bot.channelID,
 		slack.MsgOptionText("Test message from letmein2", false),
@@ -41,6 +50,9 @@ func (bot SlackBot) testMessage() {
 }
 
 func (bot SlackBot) sendKnock(username string, location string) (messagets string) {
+	if !bot.isValidBot {
+		return
+	}
 
 	text := fmt.Sprintf("@here *%s* is requesting entry at *%s*", username, location)
 
@@ -76,6 +88,9 @@ func (bot SlackBot) sendKnock(username string, location string) (messagets strin
 
 func (bot SlackBot) updateStatus(knockEvent KnockEvent) {
 	// Allows messages to be updated with the status of the request
+	if !bot.isValidBot {
+		return
+	}
 
 	text := ""
 	if knockEvent.Event == "ACKNOWLEDGE" {

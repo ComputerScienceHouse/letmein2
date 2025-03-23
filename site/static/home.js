@@ -14,6 +14,7 @@ const requestNvmAlert = document.getElementById("request_nvm_alert");
 const timeoutDiv = document.getElementById("timeout_div");
 const requestTitle = document.getElementById("request_modal_title");
 const namelessTitle = document.getElementById("nameless_title");
+const tooltipText = document.getElementById("tooltip-text");
 
 // TODO: This feels janky.
 // Sets up the event listeners for the various doors specified by the
@@ -164,5 +165,44 @@ function updateTimeoutBar(currentTime, maxTime) {
     timeoutBar.hidden = true;
   }
 }
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function toggleLocationButtons() {
+  const now = new Date();
+  var expirationDate = undefined;
+  if (nameInput.value === '') {
+    if(locationList.classList.contains('enable-buttons-container')) {
+      locationList.classList.remove('enable-buttons-container');
+    }
+    locationList.classList.add('disable-buttons-container');
+    tooltipText.textContent="Enter your name to begin!";
+    expirationDate = new Date(now.getTime() - 1 * 60 * 60 * 1000); // expired an hour ago; invalidates cookie
+  }
+  else {
+    if(locationList.classList.contains('disable-buttons-container')) {
+      locationList.classList.remove('disable-buttons-container');
+    }
+    locationList.classList.add('enable-buttons-container');
+    tooltipText.textContent="Where are you?";
+    expirationDate = new Date(now.getTime() + 2190 * 60 * 60 * 1000); // expires 3 months from submission
+  }
+  const expires = "expires=" + expirationDate.toUTCString();
+  document.cookie = `username=${nameInput.value}; expires=${expires}; path=/`;
+}
+nameInput.addEventListener('input',toggleLocationButtons);
+
+const username = getCookie("username")
+if (getCookie("username") != undefined) { 
+  console.log("Cookie found: " + getCookie("username"));
+  nameInput.value = username;
+} else {
+  nameInput.value = ""; // will not work because modern browsers ignore autocomplete=off but one can hope
+}
+toggleLocationButtons();
 
 homePageSetup();

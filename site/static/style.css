@@ -16,3 +16,27 @@
     flex-wrap: wrap;
 }
 
+.enable-buttons-container {
+    pointer-events: all;
+    opacity: 1;
+  }
+
+.disable-buttons-container {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+#knock_name_input:placeholder-shown {
+    color: red;
+}
+
+#knock_name_input:placeholder-shown + .name_input_tooltip  {
+    display: block;
+}
+
+.name_input_tooltip {
+    color: red;
+    display: none;
+    margin: auto;
+    width: max-content;
+}
