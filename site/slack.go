@@ -34,7 +34,7 @@ func NewSlackBot(oauthToken string, channelID string) SlackBot {
 
 func (bot SlackBot) testMessage() {
 	if !bot.isValidBot {
-		log.Printf("SlackBot not valid; ignoring request for TestMessage.")
+		log.Printf("SlackBot not valid; ignoring request for testMessage.")
 		return
 	}
 	channelID, timestamp, err := bot.api.PostMessage(
