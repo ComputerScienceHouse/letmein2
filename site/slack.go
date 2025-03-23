@@ -34,7 +34,6 @@ func NewSlackBot(oauthToken string, channelID string) SlackBot {
 
 func (bot SlackBot) testMessage() {
 	if !bot.isValidBot {
-		log.Printf("SlackBot not valid; ignoring request for testMessage.")
 		return
 	}
 	channelID, timestamp, err := bot.api.PostMessage(
@@ -52,7 +51,6 @@ func (bot SlackBot) testMessage() {
 
 func (bot SlackBot) sendKnock(username string, location string) (messagets string) {
 	if !bot.isValidBot {
-		log.Printf("SlackBot not valid; ignoring request for sendKnock.")
 		return
 	}
 
@@ -91,7 +89,6 @@ func (bot SlackBot) sendKnock(username string, location string) (messagets strin
 func (bot SlackBot) updateStatus(knockEvent KnockEvent) {
 	// Allows messages to be updated with the status of the request
 	if !bot.isValidBot {
-		log.Printf("SlackBot not valid; ignoring request for updateStatus.")
 		return
 	}
 
