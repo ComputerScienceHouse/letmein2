@@ -13,8 +13,7 @@ func main() {
 	// Load environment variables, one way or another
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Println("Couldn't load .env file! Please ensure that you have a .env in this directory. Check main.go for expected variables.")
-		return
+		fmt.Println("Warning: Couldn't load .env file! Please ensure that you have a .env in this directory. Check main.go for expected variables.")
 	}
 
 	var broker, brokerMissing = os.LookupEnv("LMI_BROKER")
