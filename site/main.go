@@ -6,10 +6,17 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Get environment variables
+	// Load environment variables, one way or another
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Couldn't load .env file! Please ensure that you have a .env in this directory. Check main.go for expected variables.")
+		return
+	}
+
 	var broker, brokerMissing = os.LookupEnv("LMI_BROKER")
 	var port, portMissing = os.LookupEnv("LMI_BROKER_PORT")
 	var portNumber = 1883 // Set a reasonable default.
