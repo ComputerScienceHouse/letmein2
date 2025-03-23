@@ -9,7 +9,6 @@ import (
 
 var bot SlackBot
 var httpRegistered bool = false
-var isValidBot bool = true
 
 type SlackBotInterface interface {
 	testMessage()
@@ -18,19 +17,26 @@ type SlackBotInterface interface {
 }
 
 type SlackBot struct {
-	api       *slack.Client
-	channelID string
+	api        *slack.Client
+	channelID  string
+	isValidBot bool
 }
 
 func NewSlackBot(oauthToken string, channelID string) SlackBot {
+	var isValid bool = true
 	if oauthToken == "" || channelID == "" {
-		isValidBot = false
+		isValid = false
+		fmt.Println("== The SlackBot is not valid, any requests will be Ignored! ==")
 	}
-	bot = SlackBot{slack.New(oauthToken), channelID}
+	bot = SlackBot{slack.New(oauthToken), channelID, isValid}
 	return bot
 }
 
 func (bot SlackBot) testMessage() {
+	if !bot.isValidBot {
+		log.Printf("SlackBot not valid; ignoring request for TestMessage.")
+		return
+	}
 	channelID, timestamp, err := bot.api.PostMessage(
 		bot.channelID,
 		slack.MsgOptionText("Test message from letmein2", false),
@@ -45,6 +51,10 @@ func (bot SlackBot) testMessage() {
 }
 
 func (bot SlackBot) sendKnock(username string, location string) (messagets string) {
+	if !bot.isValidBot {
+		log.Printf("SlackBot not valid; ignoring request for sendKnock.")
+		return
+	}
 
 	text := fmt.Sprintf("@here *%s* is requesting entry at *%s*", username, location)
 
@@ -80,6 +90,10 @@ func (bot SlackBot) sendKnock(username string, location string) (messagets strin
 
 func (bot SlackBot) updateStatus(knockEvent KnockEvent) {
 	// Allows messages to be updated with the status of the request
+	if !bot.isValidBot {
+		log.Printf("SlackBot not valid; ignoring request for updateStatus.")
+		return
+	}
 
 	text := ""
 	if knockEvent.Event == "ACKNOWLEDGE" {
@@ -103,8 +117,4 @@ func (bot SlackBot) updateStatus(knockEvent KnockEvent) {
 	}
 
 	log.Printf("Request sent to Channel %s at %s\n", channelID, timestamp)
-}
-
-func (bot SlackBot) isValidBotFunc() bool {
-	return isValidBot
 }

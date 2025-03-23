@@ -122,9 +122,7 @@ func (knock Knock) createMQTTClient(conn *websocket.Conn, knockEvent *KnockEvent
 		if msg.Topic() == "letmein2/ack" && string(msg.Payload()) != "nvm" && string(msg.Payload()) != "timeout" {
 			knockEvent.Event = "ACKNOWLEDGE"
 			knockEvent.CurrentTime = 0
-			if bot.isValidBotFunc() {
-				bot.updateStatus(*knockEvent)
-			}
+			bot.updateStatus(*knockEvent)
 			message, _ := json.Marshal(knockEvent)
 			conn.WriteMessage(websocket.TextMessage, message)
 			conn.Close()
@@ -187,9 +185,7 @@ func (knockEvent *KnockEvent) doCountdown(wsConn *websocket.Conn, mqttClient mqt
 	knockEvent.Event = "TIMEOUT"
 	knockEvent.CurrentTime = 0
 	timeoutMessage, _ := json.Marshal(knockEvent)
-	if bot.isValidBotFunc() {
-		bot.updateStatus(*knockEvent)
-	}
+	bot.updateStatus(*knockEvent)
 	wsConn.WriteMessage(websocket.TextMessage, timeoutMessage)
 }
 
@@ -203,7 +199,6 @@ func (knockEvent *KnockEvent) readClientMsg(wsConn *websocket.Conn, mqttClient m
 		clientMessageObject := KnockEvent{}
 		err = json.Unmarshal([]byte(message), &clientMessageObject)
 		fmt.Println("Recieved message from client in session ", knockEvent.ID, ". Message: ", clientMessageObject)
-		fmt.Println("Shall the bot be valid? the answer may shock you: ", bot.isValidBotFunc())
 		if err != nil {
 			log.Println("knockWatchForNvm:", err, ".")
 			return
@@ -213,17 +208,13 @@ func (knockEvent *KnockEvent) readClientMsg(wsConn *websocket.Conn, mqttClient m
 			wsConn.Close()
 
 			knockEvent.Event = "NEVERMIND"
-			if bot.isValidBotFunc() {
-				bot.updateStatus(*knockEvent)
-			}
+			bot.updateStatus(*knockEvent)
 			token := mqttClient.Publish("letmein2/nvm", 0, false, clientMessageObject.Location)
 			token.Wait()
 		}
 		if clientMessageObject.Event == "NAME" {
 			fmt.Println("Got NAME: ", clientMessageObject.Name)
-			if bot.isValidBotFunc() {
-				knockEvent.SlackMessageTS = bot.sendKnock(clientMessageObject.Name, location_map[clientMessageObject.Location])
-			}
+			knockEvent.SlackMessageTS = bot.sendKnock(clientMessageObject.Name, location_map[clientMessageObject.Location])
 		}
 	}
 }
