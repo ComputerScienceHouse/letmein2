@@ -203,6 +203,12 @@ if (getCookie("username") != undefined) {
 } else {
   nameInput.value = ""; // will not work because modern browsers ignore autocomplete=off but one can hope
 }
+
+//toggle the map image
+function toggleImage() {
+  var imgContainer = document.getElementById('imageContainer');
+  imgContainer.style.display = (imgContainer.style.display === 'none' || imgContainer.style.display === '') ? 'block' : 'none';
+}
 toggleLocationButtons();
 
 homePageSetup();
