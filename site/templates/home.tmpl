@@ -9,24 +9,24 @@
     <script defer src="/static/home.js"></script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <a class="navbar-brand" href="#">LetMeIn</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand" href="#">LetMeIn</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-    <div class="collapse navbar-collapse" id="navbarColor01">
-        <ul class="navbar-nav mr-auto">
-        <li class="nav-item active">
-            <a class="nav-link" href="https://members.csh.rit.edu/">Home <span class="sr-only">(current)</span></a>
-        </li>
-        
-        <li class="nav-item">
-        <a class="nav-link" href="#" onclick="toggleImage()">Locations</a>
+        <div class="collapse navbar-collapse" id="navbarColor01">
+            <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="https://members.csh.rit.edu/">Home <span class="sr-only">(current)</span></a>
+            </li>
+            
+            <li class="nav-item">
+            <a class="nav-link" href="#" onclick="toggleImage()">Locations</a>
 
-        <div id="imageContainer" style="display: none;">
-            <img src="/static/cshmap.png" alt="Locations" style="max-width: 100%; height: auto;">
-        </div>
+            <div id="imageContainer" style="display: none;">
+                <img src="/static/cshmap.png" alt="Locations" style="max-width: 100%; height: auto;">
+            </div>
 
 
 
@@ -66,11 +66,11 @@
     </div>
     <div id="request_modal" class="modal fade" role="dialog" aria-labelledby="request_modal_label" aria-hidden="true">
         <div class="modal-dialog" role="document">
-          <div class="modal-content">
+          <div class="modal-content">   
             <div class="modal-header" id="request_modal_header">
-              <h5 class="modal-title" id="request_modal_title">Requesting access at: {{ .location }}</h5>
+              <h3 class="modal-title" id="request_modal_title">Requesting access at: {{ .location }}</h3>
               <h5 class="modal-title" id="nameless_title">Wait! Who are you!?</h5>
-              <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close" width:100px height:55px font-size:30px>
                 <span aria-hidden="true">&times;</span>
               </button> -->
             </div>

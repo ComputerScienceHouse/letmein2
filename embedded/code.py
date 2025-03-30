@@ -14,7 +14,7 @@ def main():
     art_logo()
     art_mem_info()
     jingle.boot_sync()
-
+    
     # Set location of this device
     location = secrets["location"]
     if location == '':
