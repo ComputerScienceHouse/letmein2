@@ -1,109 +1,31 @@
-    .header {
-        font-size: clamp(30px, 5vw, 60px);
-        font-weight: 500;
-        text-align: center;
-    }
+.header {
+    font-size: clamp(30px, 5vw, 60px);
+    font-weight: 500;
+    text-align: center;
+}
 
-    .beeg {
-        font-size: 25px;
-        margin: 20px;
-        color:white;
-        border: black;
-        border-radius: 5%;
-        border-block:inherit;
-        border-block-color: black;
-        align-items: center;
-    }
+.beeg {
+    font-size: 25px;
+    margin: 20px;
+    color:white;
+    border: black;
+    border-radius: 5%;
+    border-block:inherit;
+    border-block-color: black;
+    align-items: center;
+}
 
-    #locationList {
-        display: flex;
-        align-content: center;
-        flex-direction: column;
-        flex-wrap: wrap;
-    }
-
-    .enable-buttons-container {
-        pointer-events: all;
-        opacity: 1; 
-    }
-
-    .disable-buttons-container {
-        pointer-events: none;
-        opacity: 0.5;
-    }
-
-    #knock_name_input:placeholder-shown {
-        color: red;
-    }
-
-    #knock_name_input:placeholder-shown + .name_input_tooltip  {
-        display: block;
-        font-size: 20px;
-    }
-
-    .name_input_tooltip {
-        color: red;
-        display: none;
-        margin: auto;
-        width: max-content;
-    }
-
-    .button{
-        background-size:cover; 
-        background-repeat: no-repeat;
-        background-position: center;
-        width: 300px !important; 
-        height: 194px !important; 
-        font-size: 26px !important; 
-        border-radius: 10px; 
-        gap: 15px;
-    }
-
-    #request_modal_dialog {
-        font-size: 1.2rem;
-        padding: 20px; 
-    }
-
-    .modal-dialog {
-        max-width: 600px; 
-    }
-
-    .modal-content {
-        padding: 20px; 
-    }
-
-    
-
-    @media (max-width: 991px) {
-        .navbar-collapse {
-            max-height: 70vh;
-            padding: 15px;
-            overflow-y: auto;
-        }
-
-        .navbar-nav {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .navbar-nav .nav-item {
-            padding: 10px 0;
-        }
-
-        .navbar-nav .nav-link {
-            font-size: 1.3rem;
-            padding: 10px 15px;
-            text-align: left;
-        }
-    }
-
-
+#locationList {
+    display: flex;
+    align-content: center;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
 
 .enable-buttons-container {
     pointer-events: all;
-    opacity: 1;
-  }
+    opacity: 1; 
+}
 
 .disable-buttons-container {
     pointer-events: none;
@@ -116,6 +38,7 @@
 
 #knock_name_input:placeholder-shown + .name_input_tooltip  {
     display: block;
+    font-size: 20px;
 }
 
 .name_input_tooltip {
@@ -123,4 +46,54 @@
     display: none;
     margin: auto;
     width: max-content;
+}
+
+.button{
+    background-size:cover; 
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 300px !important; 
+    height: 194px !important; 
+    font-size: 26px !important; 
+    border-radius: 10px; 
+    gap: 15px;
+}
+
+#request_modal_dialog {
+    font-size: 1.2rem;
+    padding: 20px; 
+}
+
+.modal-dialog {
+    max-width: 600px; 
+}
+
+.modal-content {
+    padding: 20px; 
+}
+
+
+
+@media (max-width: 991px) {
+    .navbar-collapse {
+        max-height: 70vh;
+        padding: 15px;
+        overflow-y: auto;
+    }
+
+    .navbar-nav {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .navbar-nav .nav-item {
+        padding: 10px 0;
+    }
+
+    .navbar-nav .nav-link {
+        font-size: 1.3rem;
+        padding: 10px 15px;
+        text-align: left;
+    }
 }
