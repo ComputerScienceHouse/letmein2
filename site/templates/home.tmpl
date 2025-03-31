@@ -61,7 +61,7 @@
     </h2>
     <div id="locationList">
         {{ range $key, $value := .location_map }}
-        <button id="{{ $key }}" data-toggle="modal" data-target="#request_modal" class="btn btn-outline-primary beeg button" style="background-image: url('/static/{{ $key }}-bg.png');"> {{ $value }}</button>
+        <button id="{{ $key }}" data-toggle="modal" data-target="#request_modal" class="btn btn-outline-primary beeg button" style="background-image: url('/static/{{ $key }}-bg.jpg');"> {{ $value }}</button>
         {{ end }}
     </div>
     <div id="request_modal" class="modal fade" role="dialog" aria-labelledby="request_modal_label" aria-hidden="true">
