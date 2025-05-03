@@ -104,24 +104,18 @@
         padding: 10px 15px;
         text-align: left;
     }
-    
-    h2 {
-        font-size: 3rem;
-    }
-
-    .btn {
-        width: 100%;
-    }
 
     .locationButton {
         flex: 0 1 calc(100%); /* Adjust the width to 33.33% minus margin */
-        margin: 20px 40px;
+        margin: 10px 20px;
         gap: 0px;
-        height: 388px;
-        font-size: 3rem;
+        font-size: 2rem;
     }
 
-    #knock_name_input {
-        font-size: 2rem;
+    /* Embiggening for the location button */
+
+    .btn {
+        width: 100%;
+        font-size: 1.25rem;
     }
 }
