@@ -4,21 +4,32 @@
     text-align: center;
 }
 
-.beeg {
-    font-size: 25px;
-    margin: 20px;
+.locationButton{
+    flex: 0 1 calc(25% - 20px);
     color:white;
-    border: black;
-    border-radius: 5%;
-    border-block:inherit;
+
+    width: 300px; 
+    height: 194px;
+
+    font-size: 26px; 
+
+    background-size:cover; 
+    background-repeat: no-repeat;
+    background-position: center;
+
+    border-color: black;
+    border-radius: 10px; 
     border-block-color: black;
-    align-items: center;
+
+    margin: 20px;
+    gap: 15px;
 }
 
 #locationList {
     display: flex;
+    justify-content: center;
     align-content: center;
-    flex-direction: column;
+    flex-direction: row;
     flex-wrap: wrap;
 }
 
@@ -30,6 +41,12 @@
 .disable-buttons-container {
     pointer-events: none;
     opacity: 0.5;
+}
+
+#knock_name_input {
+    max-width: 300px;
+    display: block;
+    margin: auto;
 }
 
 #knock_name_input:placeholder-shown {
@@ -48,25 +65,16 @@
     width: max-content;
 }
 
-.button{
-    background-size:cover; 
-    background-repeat: no-repeat;
-    background-position: center;
-    width: 300px !important; 
-    height: 194px !important; 
-    font-size: 26px !important; 
-    border-radius: 10px; 
-    gap: 15px;
-}
-
 #request_modal_dialog {
     font-size: 1.2rem;
     padding: 20px; 
 }
 
+/*
 .modal-dialog {
     max-width: 600px; 
 }
+*/
 
 .modal-content {
     padding: 20px; 
@@ -95,5 +103,25 @@
         font-size: 1.3rem;
         padding: 10px 15px;
         text-align: left;
+    }
+    
+    h2 {
+        font-size: 3rem;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .locationButton {
+        flex: 0 1 calc(100%); /* Adjust the width to 33.33% minus margin */
+        margin: 20px 40px;
+        gap: 0px;
+        height: 388px;
+        font-size: 3rem;
+    }
+
+    #knock_name_input {
+        font-size: 2rem;
     }
 }

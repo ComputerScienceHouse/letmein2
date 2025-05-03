@@ -22,18 +22,12 @@
             </li>
             
             <li class="nav-item">
-            <a class="nav-link" href="#" onclick="toggleImage()">Locations</a>
+                <a class="nav-link" href="#" onclick="toggleImage()">Locations</a>
 
-            <div id="imageContainer" style="display: none;">
-                <img src="/static/cshmap.png" alt="Locations" style="max-width: 100%; height: auto;">
-            </div>
-
-
-
-
-
-</li>
-
+                <div id="imageContainer" style="display: none;">
+                    <img src="/static/cshmap.png" alt="Locations" style="max-width: 100%; height: auto;">
+                </div>
+            </li>
 
         <li class="nav-item">
             <a class="nav-link" href="https://github.com/willnilges/letmein2">What is this?</a>
@@ -53,7 +47,7 @@
     <h2 style="text-align:center">
         What is your name?
     </h2>
-    <input name="knock_name_input" required=true class="form-control form-control-lg" type="text" autocomplete="off" placeholder="Enter Name" id="knock_name_input" style="max-width: 300px; display: block; margin: auto;">
+    <input name="knock_name_input" required=true class="form-control form-control-lg" type="text" autocomplete="off" placeholder="Enter Name" id="knock_name_input">
     <p class="name_input_tooltip">*required</p>
     <br>
     <h2 id="tooltip-text" style="text-align:center">
@@ -61,11 +55,11 @@
     </h2>
     <div id="locationList">
         {{ range $key, $value := .location_map }}
-        <button id="{{ $key }}" data-toggle="modal" data-target="#request_modal" class="btn btn-outline-primary beeg button" style="background-image: url('/static/{{ $key }}-bg.jpg');"> {{ $value }}</button>
+        <button id="{{ $key }}" data-toggle="modal" data-target="#request_modal" class="btn btn-outline-primary locationButton" style="background-image: url('/static/{{ $key }}-bg.jpg');"> {{ $value }}</button>
         {{ end }}
     </div>
     <div id="request_modal" class="modal fade" role="dialog" aria-labelledby="request_modal_label" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-dialog-centered" role="document">
           <div class="modal-content">   
             <div class="modal-header" id="request_modal_header">
               <h3 class="modal-title" id="request_modal_title">Requesting access at: {{ .location }}</h3>
