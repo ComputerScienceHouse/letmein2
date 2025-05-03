@@ -105,14 +105,16 @@
         text-align: left;
     }
 
+    /* Embiggening for the location button */
+
     .locationButton {
-        flex: 0 1 calc(100%); /* Adjust the width to 33.33% minus margin */
+        flex: 0 1 calc(100%);
         margin: 10px 20px;
         gap: 0px;
         font-size: 2rem;
     }
 
-    /* Embiggening for the location button */
+    /* Embiggening for the dialogue button */
 
     .btn {
         width: 100%;
