@@ -86,7 +86,7 @@ func (bot SlackBot) sendKnock(username string, location string) (messagets strin
 
 }
 
-func (bot SlackBot) updateStatus(knockEvent KnockEvent, username string, location string) {
+func (bot SlackBot) updateStatus(knockEvent KnockEvent) {
 	// Allows messages to be updated with the status of the request
 	if !bot.isValidBot {
 		return
@@ -94,11 +94,11 @@ func (bot SlackBot) updateStatus(knockEvent KnockEvent, username string, locatio
 
 	text := ""
 	if knockEvent.Event == "ACKNOWLEDGE" {
-		text = fmt.Sprintf("This request was answered 🟢!\nUser: %s\nLocation: %s", username, location)
+		text = "This request was answered 🟢!"
 	} else if knockEvent.Event == "NEVERMIND" {
-		text = fmt.Sprintf("This request was cancelled 🟡!\nUser: %s\nLocation: %s", username, location)
+		text = "This request was cancelled 🟡!"
 	} else if knockEvent.Event == "TIMEOUT" {
-		text = fmt.Sprintf("This request timed out 🔴!\nUser: %s\nLocation: %s", username, location)
+		text = "This request timed out 🔴!"
 	}
 
 	_, channelID, timestamp, err := bot.api.UpdateMessage(
