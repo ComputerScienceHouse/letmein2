@@ -94,11 +94,11 @@ func (bot SlackBot) updateStatus(knockEvent KnockEvent) {
 
 	text := ""
 	if knockEvent.Event == "ACKNOWLEDGE" {
-		text = "This request was answered 🟢!"
+		text = fmt.Sprintf("This request was answered 🟢!\nUser: %s\nLocation: %s", knockEvent.Name, knockEvent.Location)
 	} else if knockEvent.Event == "NEVERMIND" {
-		text = "This request was cancelled 🟡!"
+		text = fmt.Sprintf("This request was cancelled 🟡!\nUser: %s\nLocation: %s", knockEvent.Name, knockEvent.Location)
 	} else if knockEvent.Event == "TIMEOUT" {
-		text = "This request timed out 🔴!"
+		text = fmt.Sprintf("This request timed out 🔴!\nUser: %s\nLocation: %s", knockEvent.Name, knockEvent.Location)
 	}
 
 	_, channelID, timestamp, err := bot.api.UpdateMessage(
