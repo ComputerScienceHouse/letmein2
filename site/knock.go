@@ -214,6 +214,9 @@ func (knockEvent *KnockEvent) readClientMsg(wsConn *websocket.Conn, mqttClient m
 		}
 		if clientMessageObject.Event == "NAME" {
 			fmt.Println("Got NAME: ", clientMessageObject.Name)
+
+			knockEvent.Name = clientMessageObject.Name // Esto funciona, confía en mí.
+
 			knockEvent.SlackMessageTS = bot.sendKnock(clientMessageObject.Name, location_map[clientMessageObject.Location])
 		}
 	}
