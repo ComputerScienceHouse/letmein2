@@ -20,11 +20,12 @@ import (
 
 // Location map should map the later sync.Map 1:1
 var location_map = map[string]string{
-	"n_stairs": "North Side Stairwell",
-	"s_stairs": "South Side Stairwell",
-	"level_a":  "Level A Elevator Lobby",
-	"level_1":  "Level 1 Elevator Lobby",
-	"l_well":   "L Well",
+	"n_stairs":     "North Side Stairwell",
+	"s_stairs":     "South Side Stairwell",
+	"level_a":      "Level A Elevator Lobby",
+	"level_1":      "Level 1 Elevator Lobby",
+	"l_well":       "L Well",
+	"outside_coho": "Outside Corner Store",
 }
 
 // Copied the client map variable from README.md
